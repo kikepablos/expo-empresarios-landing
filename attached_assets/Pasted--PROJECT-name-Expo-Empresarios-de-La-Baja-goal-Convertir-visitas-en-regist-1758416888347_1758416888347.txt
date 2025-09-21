@@ -1,0 +1,254 @@
+{
+  "PROJECT": {
+    "name": "Expo Empresarios de La Baja",
+    "goal": "Convertir visitas en registros al evento anual #1 de proveedores para hoteles en Baja (leads calificados de hoteleros: directores, compras, gerentes generales). Secundario: informar agenda/valor, mostrar ediciones anteriores y facilitar contacto expositores.",
+    "event_date_time": "2025-11-14T10:00:00-07:00", 
+    "location": "Baja California, México"
+  },
+
+  "AUDIENCE": {
+    "primary": ["Hoteleros", "Gerentes Generales", "Directores de Compras", "Operaciones", "Mantenimiento"],
+    "secondary": ["Marcas proveedoras B2B para hospitalidad", "Inversionistas", "Prensa local"]
+  },
+
+  "BRAND_GUIDE": {
+    "palette": {
+      "black": "#0B0B0C",
+      "gold": "#C7A879",
+      "sand": "#E7D8BD",
+      "white": "#FFFFFF",
+      "gray": "#9BA0A6"
+    },
+    "typography": {
+      "headings_serif": "Playfair Display",
+      "body_sans": "Poppins"
+    },
+    "tone": "Elegante, moderno, confiable y orientado a negocio.",
+    "logo_usage": "Colocar el emblema dorado sobre fondo negro en header y footer. Mantener margen de aire amplio."
+  },
+
+  "GLOBAL_UI": {
+    "nav": ["Inicio", "El Evento", "Incluye", "Rifa", "Galería", "Contacto"],
+    "cta_primary_label": "Registrarme",
+    "cta_secondary_label": "Ser Expositor",
+    "button_style": "Relleno dorado #C7A879, texto negro, borde redondeado 9999px, hover: leve brillo + sombra suave.",
+    "sections_spacing": "112px desktop / 64px tablet / 48px mobile",
+    "animations": "Transiciones suaves (fade/slide 400–600ms). AOS/Framer permitidos."
+  },
+
+  "HERO_CAROUSEL": {
+    "type": "fullscreen carousel with dark top/bottom gradient overlay",
+    "autoplay": true,
+    "interval_ms": 6000,
+    "images_guidance": [
+      "Piso de expo con stands de proveedores hoteleros",
+      "Close-up de amenidades para hotel (blancos, dispensadores)",
+      "Handshake entre comprador hotelero y proveedor",
+      "Conferencia con audiencia de hoteleros",
+      "Equipamiento y tecnología (PMS, cerraduras, energía)"
+    ],
+    "overlay_title_text": "Únete a la experiencia de La Baja",
+    "overlay_subtext": "El punto de encuentro #1 de proveedores para hoteles",
+    "overlay_cta": "Registrarme",
+    "overlay_cta_action": "open_registration_modal",
+    "image_overlays_words_if_no_image": [
+      "Conecta", "Compra", "Optimiza", "Escala", 
+      "Proveedores Hotel",
+      "Innovación para Hospitalidad"
+    ],
+    "accessibility_alt_for_each_slide": [
+      "Stands de proveedores con hoteleros visitando",
+      "Productos de amenidades exhibidos",
+      "Apretón de manos cerrando trato",
+      "Ponencia con profesionales hoteleros",
+      "Tecnologías para gestión hotelera"
+    ]
+  },
+
+  "WORD_MARQUEE_CAROUSEL": {
+    "style": "franja negra, tipografía serif dorada XL, auto-scroll horizontal infinito, pausa on-hover",
+    "words_big": [
+      "Innovación Hotelera",
+      "Proveedores Certificados",
+      "Equipamiento & Mobiliario",
+      "Amenidades & Blancos",
+      "A&B · Cafetería · Cocina",
+      "Energía & Sustentabilidad",
+      "Limpieza & Mantenimiento",
+      "Seguridad & Cerraduras",
+      "Tecnología · PMS · Channel Manager",
+      "Marketing & OTA",
+      "Decoración & Interiorismo",
+      "Servicios Financieros & Seguros"
+    ],
+    "fallback_when_images_pending": "Mostrar estas palabras como bloques tipográficos grandes ocupando el área vacía de imágenes."
+  },
+
+  "ABOUT_EVENT": {
+    "id": "El Evento",
+    "layout": "2 columnas (imagen izquierda, texto derecha); invertir en mobile (texto arriba).",
+    "left_image_suggestion": "Networking entre hoteleros y expositores",
+    "title": "¿Qué es Expo Empresarios de La Baja?",
+    "paragraphs": [
+      "Expo Empresarios de La Baja es el evento anual más grande de proveedores para hoteles en Baja California.",
+      "Aquí hoteleros encuentran nuevos proveedores, productos y soluciones para mejorar operación, experiencia del huésped y rentabilidad.",
+      "Durante un día, reunimos stands, conferencias, demos y espacios de networking de alto valor."
+    ],
+    "bullets_highlights": [
+      "Una vez al año · edición 2025",
+      "Citas 1:1 entre compradores y proveedores",
+      "Contenido curado para directivos hoteleros"
+    ]
+  },
+
+  "INCLUDES_SECTION": {
+    "id": "Incluye",
+    "title": "Lo que incluye tu acceso",
+    "grid_items": [
+      {
+        "icon": "tienda",
+        "label": "Zona de Expositores",
+        "desc": "Marcas líderes con soluciones para todas las áreas del hotel."
+      },
+      {
+        "icon": "microfono",
+        "label": "Conferencias & Demos",
+        "desc": "Tendencias, casos reales y tecnología aplicable."
+      },
+      {
+        "icon": "shake",
+        "label": "Rueda de Negocios 1:1",
+        "desc": "Agenda citas con proveedores clave."
+      },
+      {
+        "icon": "copas",
+        "label": "Networking VIP",
+        "desc": "Cierre de día con contactos de alto impacto."
+      },
+      {
+        "icon": "regalo",
+        "label": "Rifa Oficial",
+        "desc": "Participa por premios para tu hotel (ver detalles)."
+      },
+      {
+        "icon": "galeria",
+        "label": "Galería Histórica",
+        "desc": "Revisa ediciones anteriores y casos de éxito."
+      }
+    ],
+    "cta_below": { "text": "Ver Agenda Preliminar", "action": "scroll_to#El Evento" }
+  },
+
+  "COUNTDOWN": {
+    "title": "Faltan para el gran día",
+    "target_iso": "2025-11-14T10:00:00-07:00",
+    "units": ["Días", "Horas", "Minutos", "Segundos"],
+    "after_zero_text": "¡Comenzamos!",
+    "placement": "debajo del hero en desktop; fijo bajo el marquee en mobile"
+  },
+
+  "RAFFLE_SECTION": {
+    "id": "Rifa",
+    "title": "Rifa oficial para asistentes registrados",
+    "sub": "Regístrate y asiste para participar",
+    "prizes_list": [
+      "Set de amenidades premium para 50 habitaciones",
+      "Kit de blancos (sábanas + toallas) estándar hotel",
+      "Software PMS 3 meses (plan demo empresarial)",
+      "Tarjeta regalo para capacitación de personal",
+      "Paquete de limpieza y mantenimiento"
+    ],
+    "date_time": "2025-11-14 17:30 (hora local)",
+    "mechanics": [
+      "1 boleto electrónico por registro confirmado",
+      "Debes escanear tu pase a la entrada para activar tu boleto",
+      "La rifa se realiza en el escenario principal a las 17:30",
+      "El ganador debe estar presente o designar representante del hotel"
+    ],
+    "disclaimer": "Imágenes ilustrativas. Premios sujetos a disponibilidad de patrocinadores. Aplican términos.",
+    "cta": { "text": "Registrarme para la rifa", "action": "open_registration_modal" }
+  },
+
+  "GALLERY": {
+    "id": "Galería",
+    "title": "Ediciones anteriores",
+    "layout": "grid 3–4 columnas, lightbox on click",
+    "hover_caption": "Edición {year} · Ver foto",
+    "placeholder_words_if_no_images": [
+      "Historias de Negocio",
+      "Casos de Éxito",
+      "Proveedores en Acción",
+      "Networking Real"
+    ]
+  },
+
+  "CONTACT_SECTION": {
+    "id": "Contacto",
+    "title": "¿Tienes dudas o deseas exponer?",
+    "subtitle": "Escríbenos y te respondemos en menos de 24 horas.",
+    "fields": ["Nombre", "Correo", "Teléfono", "Empresa", "Mensaje (opcional)"],
+    "submit_label": "Enviar mensaje",
+    "success_text": "¡Gracias! Te contactaremos muy pronto.",
+    "error_text": "Revisa los campos marcados.",
+    "privacy_note": "Al enviar aceptas nuestro Aviso de Privacidad.",
+    "whatsapp_shortcut": { "label": "WhatsApp", "action": "open_whatsapp_link" }
+  },
+
+  "REGISTRATION_MODAL": {
+    "open_by": ["Hero.Registrarme", "Incluye.Rifa", "Navbar CTA"],
+    "title": "Registro de Asistente",
+    "fields": [
+      { "name": "nombre", "label": "Nombre completo", "required": true },
+      { "name": "correo", "label": "Correo electrónico", "required": true, "validation": "email" },
+      { "name": "telefono", "label": "Número de teléfono", "required": true },
+      { "name": "puesto", "label": "Puesto", "required": true },
+      { "name": "empresa", "label": "Empresa / Hotel", "required": true }
+    ],
+    "consents": [
+      "Acepto recibir información del evento y proveedores participantes.",
+      "He leído el Aviso de Privacidad."
+    ],
+    "submit_label": "Enviar registro",
+    "success_text": "¡Gracias por registrarte! Te enviamos tu pase por correo.",
+    "error_text": "No pudimos completar el registro. Intenta de nuevo.",
+    "after_submit_actions": ["send_email_ticket", "push_crm_lead", "ga_event_register"]
+  },
+
+  "COPY_BLOCKS": {
+    "value_prop": "Encuentra en un solo día a los mejores proveedores para tu hotel y acelera tus compras con confianza.",
+    "why_attend_title": "¿Por qué asistir?",
+    "why_attend_bullets": [
+      "Ahorra semanas de prospección viendo todo en un mismo lugar.",
+      "Compara precios, tiempos y garantías cara a cara.",
+      "Descubre innovaciones que impactan tu GOP y satisfacción del huésped."
+    ],
+    "sticky_cta_bar": "Regístrate gratis · Cupo limitado"
+  },
+
+  "PLACEHOLDER_WORDS_FOR_IMAGE_SPACES": {
+    "rules": "Si aún no hay imagen, renderiza bloque negro con tipografía serif dorada XL centrada.",
+    "list": [
+      "Expo Proveedores Hoteleros 2025",
+      "Negocios Reales · Resultados Reales",
+      "Conoce · Compara · Decide",
+      "La mayor oferta B2B para hoteles en Baja"
+    ]
+  },
+
+  "FOOTER": {
+    "socials": ["LinkedIn", "Facebook", "Instagram"],
+    "links": ["Aviso de Privacidad", "Términos", "Contacto"],
+    "smallprint": "© 2012–2025 Expo Empresarios de La Baja. Todos los derechos reservados."
+  },
+
+  "TECH_IMPL_HINTS": {
+    "stack": ["React", "TailwindCSS", "SwiperJS", "Framer Motion"],
+    "seo": {
+      "title": "Expo Empresarios de La Baja · Proveedores para Hoteles",
+      "meta_description": "El evento anual más grande de proveedores para hoteles en Baja. Networking, conferencias, rueda de negocios y rifa para asistentes. Regístrate gratis.",
+      "schema": "JSON-LD Event schema with startDate, location, offers:free"
+    },
+    "performance": ["lazyload imágenes", "WebP/AVIF", "preload fonts", "CLS < 0.1"],
+    "analytics": ["GA4 events: view_content, register_submit, raffle_cta_click"]
+  }
+}
