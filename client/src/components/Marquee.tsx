@@ -23,7 +23,7 @@ export default function Marquee({ words }: MarqueeProps) {
           animation-play-state: paused;
         }
       `}</style>
-      <div className="bg-foreground text-primary py-6 overflow-hidden" data-testid="marquee-container">
+      <div className="bg-background text-primary py-6 overflow-hidden border-y border-border" data-testid="marquee-container">
         <div className="animate-marquee whitespace-nowrap">
           <div className="inline-block">
             {words.map((word, index) => (

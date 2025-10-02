@@ -51,7 +51,7 @@ export default function CountdownTimer({ targetDate, title = "Faltan para el gra
   ];
 
   return (
-    <div className="py-12 bg-muted" data-testid="countdown-timer">
+    <div className="py-12 bg-background border-t border-border" data-testid="countdown-timer">
       <div className="container mx-auto px-4 text-center">
         <h2 className="font-serif text-3xl md:text-4xl font-bold mb-8" data-testid="countdown-title">
           {isEventStarted ? '¡Comenzamos!' : title}
@@ -60,11 +60,15 @@ export default function CountdownTimer({ targetDate, title = "Faltan para el gra
         {!isEventStarted && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
             {timeUnits.map((unit, index) => (
-              <Card key={unit.label} className="p-6 bg-foreground text-background hover-elevate" data-testid={`countdown-unit-${index}`}>
+              <Card
+                key={unit.label}
+                className="p-6 bg-[#111111] border border-border text-foreground shadow-lg hover-elevate"
+                data-testid={`countdown-unit-${index}`}
+              >
                 <div className="text-3xl md:text-4xl font-bold mb-2 text-primary" data-testid={`countdown-value-${index}`}>
                   {unit.value.toString().padStart(2, '0')}
                 </div>
-                <div className="text-sm md:text-base text-background/80" data-testid={`countdown-label-${index}`}>
+                <div className="text-sm md:text-base text-muted-foreground" data-testid={`countdown-label-${index}`}>
                   {unit.label}
                 </div>
               </Card>

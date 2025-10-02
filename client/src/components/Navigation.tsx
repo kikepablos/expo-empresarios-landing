@@ -1,30 +1,61 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
+import logoImage from '@assets/logo.png';
+import { useLocation } from 'wouter';
 
 interface NavigationProps {
   onRegisterClick: () => void;
-  onExhibitorClick: () => void;
 }
 
-const navItems = [
-  { id: 'inicio', label: 'Inicio', href: '#hero' },
-  { id: 'evento', label: 'El Evento', href: '#evento' },
-  { id: 'incluye', label: 'Incluye', href: '#incluye' },
-  { id: 'rifa', label: 'Rifa', href: '#rifa' },
-  { id: 'galeria', label: 'Galería', href: '#galeria' },
-  { id: 'contacto', label: 'Contacto', href: '#contacto' }
+type NavItem = {
+  id: string;
+  label: string;
+  href: string;
+  type: 'anchor' | 'route';
+};
+
+const navItems: NavItem[] = [
+  { id: 'inicio', label: 'Inicio', href: '#hero', type: 'anchor' },
+  { id: 'rifa', label: 'Rifa', href: '#rifa', type: 'anchor' },
+  { id: 'galeria', label: 'Galería', href: '/galeria', type: 'route' },
+  { id: 'contacto', label: 'Contacto', href: '#contacto', type: 'anchor' }
 ];
 
-export default function Navigation({ onRegisterClick, onExhibitorClick }: NavigationProps) {
+export default function Navigation({ onRegisterClick }: NavigationProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [location, navigate] = useLocation();
 
-  const scrollToSection = (href: string) => {
-    const element = document.querySelector(href);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setIsMobileMenuOpen(false);
+  const handleNavClick = (item: NavItem) => {
+    if (item.type === 'anchor') {
+      // Si estamos en home, hacer scroll directo
+      if (location === '/') {
+        const element = document.querySelector(item.href);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      } else {
+        // Si estamos en otra página, navegar a home y luego hacer scroll
+        navigate('/');
+        setTimeout(() => {
+          const element = document.querySelector(item.href);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+      }
+    } else {
+      // Para rutas, navegar y hacer scroll al top
+      navigate(item.href);
+      window.scrollTo(0, 0);
     }
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleLogoClick = () => {
+    navigate('/');
+    window.scrollTo(0, 0);
+    setIsMobileMenuOpen(false);
   };
 
   return (
@@ -32,21 +63,31 @@ export default function Navigation({ onRegisterClick, onExhibitorClick }: Naviga
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center" data-testid="logo">
-              <span className="text-primary-foreground font-bold text-lg">E</span>
+          <button 
+            onClick={handleLogoClick}
+            className="flex items-center hover:opacity-80 transition-opacity cursor-pointer"
+          >
+            <img
+              src={logoImage}
+              alt="Logo Expo Empresarios de la Baja"
+              className="w-14 h-14 object-contain" data-testid="logo"
+            />
+            <div className="ml-3 text-left">
+              <span className="font-serif text-xl font-bold text-foreground block">
+                Expo Empresarios de la Baja
+              </span>
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">
+                21 nov 2025 · Hotel Krystal Grand Los Cabos
+              </span>
             </div>
-            <span className="ml-3 font-serif text-xl font-bold text-foreground">
-              Expo Empresarios
-            </span>
-          </div>
+          </button>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => scrollToSection(item.href)}
+                onClick={() => handleNavClick(item)}
                 className="text-foreground hover:text-primary transition-colors"
                 data-testid={`nav-link-${item.id}`}
               >
@@ -57,13 +98,6 @@ export default function Navigation({ onRegisterClick, onExhibitorClick }: Naviga
 
           {/* Desktop CTA Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button
-              variant="outline"
-              onClick={onExhibitorClick}
-              data-testid="button-exhibitor"
-            >
-              Ser Expositor
-            </Button>
             <Button
               onClick={onRegisterClick}
               className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full"
@@ -90,7 +124,7 @@ export default function Navigation({ onRegisterClick, onExhibitorClick }: Naviga
               {navItems.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => scrollToSection(item.href)}
+                  onClick={() => handleNavClick(item)}
                   className="text-left text-foreground hover:text-primary transition-colors py-2"
                   data-testid={`mobile-nav-link-${item.id}`}
                 >
@@ -98,14 +132,6 @@ export default function Navigation({ onRegisterClick, onExhibitorClick }: Naviga
                 </button>
               ))}
               <div className="flex flex-col space-y-2 pt-4 border-t border-border">
-                <Button
-                  variant="outline"
-                  onClick={onExhibitorClick}
-                  className="w-full"
-                  data-testid="button-exhibitor-mobile"
-                >
-                  Ser Expositor
-                </Button>
                 <Button
                   onClick={onRegisterClick}
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full"
@@ -121,3 +147,4 @@ export default function Navigation({ onRegisterClick, onExhibitorClick }: Naviga
     </nav>
   );
 }
+

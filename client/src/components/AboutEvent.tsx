@@ -6,9 +6,9 @@ interface AboutEventProps {
 
 export default function AboutEvent({ image }: AboutEventProps) {
   const highlights = [
-    "Una vez al año · edición 2025",
-    "Citas 1:1 entre compradores y proveedores",
-    "Contenido curado para directivos hoteleros"
+    "Viernes 21 de noviembre 2025 · Hotel Krystal Grand Los Cabos",
+    "Participantes: 16 Proveedores · más de 600 ejecutivos invitados",
+    "Con una inversión superior a $900,000 pesos, esta expo ha sido diseñada para brindar a más de 600 invitados del sector hotelero y restaurantero una experiencia de alto nivel. Reunimos lo mejor del mercado nacional e internacional en alimentos y bebidas, con el objetivo de impulsar la innovación, fortalecer relaciones comerciales y elevar los estándares de calidad en la región."
   ];
 
   return (
@@ -28,18 +28,18 @@ export default function AboutEvent({ image }: AboutEventProps) {
           {/* Content - Desktop: Right, Mobile: Bottom */}
           <div className="order-1 lg:order-2">
             <h2 className="font-serif text-3xl md:text-4xl font-bold mb-6" data-testid="about-title">
-              ¿Qué es Expo Empresarios de La Baja?
+              12ª Expo Empresarios de la Baja 2025
             </h2>
             
             <div className="space-y-4 mb-8">
               <p className="text-lg leading-relaxed" data-testid="about-paragraph-1">
-                Expo Empresarios de La Baja es el evento anual más grande de proveedores para hoteles en Baja California.
+                Confirmamos el salón y la renta completa del Hotel Krystal Grand Los Cabos para recibir la edición número 12 de la Expo Empresarios de la Baja este viernes 21 de noviembre de 2025.
               </p>
               <p className="text-lg leading-relaxed" data-testid="about-paragraph-2">
-                Aquí hoteleros encuentran nuevos proveedores, productos y soluciones para mejorar operación, experiencia del huésped y rentabilidad.
+                Solo 16 proveedores participarán para asegurar que los más de 600 directivos de hoteles y restaurantes tengan tiempo de calidad para conocer cada propuesta, agendar degustaciones y cerrar citas.
               </p>
               <p className="text-lg leading-relaxed" data-testid="about-paragraph-3">
-                Durante un día, reunimos stands, conferencias, demos y espacios de networking de alto valor.
+                Desde 2012 la expo ha crecido de 50 a 550 asistentes en 2023 y este año proyectamos entre 500 y 600 ejecutivos. Es la mejor oportunidad para reforzar relaciones públicas, generar ventas y abrir puertas con hoteles que normalmente no reciben proveedores.
               </p>
             </div>
 
@@ -56,3 +56,8 @@ export default function AboutEvent({ image }: AboutEventProps) {
     </section>
   );
 }
+
+
+
+
+

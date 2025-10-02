@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useLocation } from 'wouter';
 
 interface GalleryImage {
-  id: number;
-  src: string;
+  id: string;
+  url?: string;
+  src?: string;
   alt: string;
-  year: string;
+  year?: string;
 }
 
 interface GalleryProps {
@@ -14,32 +17,24 @@ interface GalleryProps {
 }
 
 export default function Gallery({ images }: GalleryProps) {
-  const [selectedImage, setSelectedImage] = useState<number | null>(null);
-
-  const openLightbox = (index: number) => {
-    setSelectedImage(index);
-  };
-
-  const closeLightbox = () => {
-    setSelectedImage(null);
-  };
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [, navigate] = useLocation();
 
   const goToPrevious = () => {
-    if (selectedImage !== null) {
-      setSelectedImage(selectedImage === 0 ? images.length - 1 : selectedImage - 1);
-    }
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
 
   const goToNext = () => {
-    if (selectedImage !== null) {
-      setSelectedImage(selectedImage === images.length - 1 ? 0 : selectedImage + 1);
-    }
+    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') closeLightbox();
-    if (e.key === 'ArrowLeft') goToPrevious();
-    if (e.key === 'ArrowRight') goToNext();
+  const handleImageClick = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
   };
 
   // If no images, show placeholder
@@ -52,17 +47,17 @@ export default function Gallery({ images }: GalleryProps) {
     ];
 
     return (
-      <section id="galeria" className="py-16 md:py-24 bg-muted" data-testid="gallery-section">
+      <section id="galeria" className="py-16 md:py-24 bg-background border-y border-border" data-testid="gallery-section">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4" data-testid="gallery-title">
               Ediciones anteriores
             </h2>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {placeholderWords.map((word, index) => (
-              <Card key={index} className="aspect-square flex items-center justify-center bg-foreground hover-elevate" data-testid={`gallery-placeholder-${index}`}>
+              <Card key={index} className="aspect-square flex items-center justify-center bg-[#111111] border border-border" data-testid={`gallery-placeholder-${index}`}>
                 <span className="font-serif text-2xl text-primary text-center px-4">
                   {word}
                 </span>
@@ -74,95 +69,126 @@ export default function Gallery({ images }: GalleryProps) {
     );
   }
 
+  const currentImage = images[currentIndex];
+  const imageUrl = currentImage.url || currentImage.src || '';
+
   return (
-    <section id="galeria" className="py-16 md:py-24 bg-muted" data-testid="gallery-section">
+    <section id="galeria" className="py-16 md:py-24 bg-background border-y border-border" data-testid="gallery-section">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
+        <div className="flex flex-col items-center text-center mb-12">
           <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4" data-testid="gallery-title">
             Ediciones anteriores
           </h2>
+          <p className="text-muted-foreground max-w-2xl">
+            Recorrido visual por las conexiones y experiencias que hemos creado en once ediciones previas.
+          </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="relative max-w-5xl mx-auto">
+          <Card className="overflow-hidden bg-[#111111] border border-border cursor-pointer group" onClick={handleImageClick}>
+            <div className="relative w-full h-72 md:h-[28rem]">
+              <img
+                src={imageUrl}
+                alt={currentImage.alt}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                data-testid="gallery-carousel-image"
+              />
+            </div>
+          </Card>
+
+          <button
+            onClick={goToPrevious}
+            className="absolute -left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/70 text-foreground hover:bg-black/90 transition-colors"
+            data-testid="carousel-prev"
+            aria-label="Imagen anterior"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+
+          <button
+            onClick={goToNext}
+            className="absolute -right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/70 text-foreground hover:bg-black/90 transition-colors"
+            data-testid="carousel-next"
+            aria-label="Imagen siguiente"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="flex justify-center mt-6 space-x-2" data-testid="carousel-indicators">
           {images.map((image, index) => (
-            <Card 
-              key={image.id} 
-              className="aspect-square overflow-hidden cursor-pointer hover-elevate group"
-              onClick={() => openLightbox(index)}
-              data-testid={`gallery-image-${index}`}
-            >
-              <div className="relative w-full h-full">
-                <img
-                  src={image.src}
-                  alt={image.alt}
-                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                  <p className="text-white text-sm font-medium">
-                    Edición {image.year} · Ver foto
-                  </p>
-                </div>
-              </div>
-            </Card>
+            <button
+              key={image.id}
+              onClick={() => setCurrentIndex(index)}
+              className={`h-2 rounded-full transition-all ${
+                index === currentIndex ? 'w-8 bg-primary' : 'w-2 bg-muted'
+              }`}
+              aria-label={`Ir a la imagen ${index + 1}`}
+            />
           ))}
         </div>
 
-        {/* Lightbox */}
-        {selectedImage !== null && (
-          <div 
-            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
-            onClick={closeLightbox}
-            onKeyDown={handleKeyDown}
-            tabIndex={0}
-            data-testid="lightbox"
-          >
-            <div className="relative max-w-4xl max-h-full p-4" onClick={(e) => e.stopPropagation()}>
-              <img
-                src={images[selectedImage].src}
-                alt={images[selectedImage].alt}
-                className="max-w-full max-h-full object-contain"
-                data-testid="lightbox-image"
-              />
-              
-              {/* Close Button */}
-              <button
-                onClick={closeLightbox}
-                className="absolute top-4 right-4 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
-                data-testid="button-close-lightbox"
-              >
-                <X className="w-6 h-6" />
-              </button>
-
-              {/* Navigation */}
-              {images.length > 1 && (
-                <>
-                  <button
-                    onClick={goToPrevious}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
-                    data-testid="button-lightbox-previous"
-                  >
-                    <ChevronLeft className="w-6 h-6" />
-                  </button>
-                  
-                  <button
-                    onClick={goToNext}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
-                    data-testid="button-lightbox-next"
-                  >
-                    <ChevronRight className="w-6 h-6" />
-                  </button>
-                </>
-              )}
-
-              {/* Image Counter */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1 bg-black/50 text-white rounded-full text-sm">
-                {selectedImage + 1} / {images.length}
-              </div>
-            </div>
-          </div>
-        )}
+        <div className="text-center mt-10">
+          <Button size="lg" onClick={() => navigate('/galeria')} data-testid="button-view-gallery">
+            Ver galería completa
+          </Button>
+        </div>
       </div>
+
+      {/* Modal para ver imagen en grande */}
+      {isModalOpen && currentImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+          onClick={handleCloseModal}
+        >
+          <button
+            onClick={handleCloseModal}
+            className="absolute top-4 right-4 text-white hover:text-primary transition-colors z-10"
+            aria-label="Cerrar"
+          >
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              goToPrevious();
+            }}
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+            aria-label="Imagen anterior"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          <div
+            className="max-w-7xl max-h-[90vh] w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={imageUrl}
+              alt={currentImage.alt}
+              className="w-full h-full object-contain"
+            />
+          </div>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              goToNext();
+            }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+            aria-label="Imagen siguiente"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      )}
     </section>
   );
 }

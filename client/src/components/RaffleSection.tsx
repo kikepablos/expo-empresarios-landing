@@ -8,18 +8,18 @@ interface RaffleSectionProps {
 
 export default function RaffleSection({ onRegisterClick }: RaffleSectionProps) {
   const prizes = [
-    "Set de amenidades premium para 50 habitaciones",
-    "Kit de blancos (sábanas + toallas) estándar hotel",
-    "Software PMS 3 meses (plan demo empresarial)",
-    "Tarjeta regalo para capacitación de personal",
-    "Paquete de limpieza y mantenimiento"
+    'Pantallas planas / Aires acondicionados',
+    'Regalos sorpresa',
+    'Viaje para dos personas con todo pagado',
+    'Artículos premium aportados por los proveedores participantes',
+    'Experiencias gastronómicas y degustaciones exclusivas'
   ];
 
   const mechanics = [
-    "1 boleto electrónico por registro confirmado",
-    "Debes escanear tu pase a la entrada para activar tu boleto",
-    "La rifa se realiza en el escenario principal a las 17:30",
-    "El ganador debe estar presente o designar representante del hotel"
+    "Registro confirmado y pase escaneado a la entrada para activar boleto",
+    "Rifas esporádicas durante las 8 horas del evento para mantener a los invitados",
+    "Al llegar, lo invitamos a recorrer los stands y descubrir las propuestas de nuestros expositores. Al finalizar su recorrido, podrá depositar su invitación en la tómbola como muestra de agradecimiento por su participación activa en la expo y su valioso apoyo a los patrocinadores que hacen posible este evento.",
+    "Premios entregados únicamente a ejecutivos presentes o su representante"
   ];
 
   return (
@@ -92,15 +92,17 @@ export default function RaffleSection({ onRegisterClick }: RaffleSectionProps) {
         {/* Event Details */}
         <Card className="bg-primary/5 border-primary/20 mb-8">
           <CardContent className="p-6">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <Clock className="w-5 h-5 text-primary" />
-              <span className="font-semibold text-lg" data-testid="raffle-datetime">
-                2025-11-14 a las 17:30 (hora local)
-              </span>
+            <div className="flex flex-col items-center gap-4">
+              <div className="flex items-center justify-center gap-2">
+                <Clock className="w-5 h-5 text-primary" />
+                <span className="font-semibold text-lg" data-testid="raffle-datetime">
+                  Viernes 21 de noviembre 2025 · 17:30 h · Hotel Krystal Grand Los Cabos
+                </span>
+              </div>
+              <p className="text-center text-sm text-muted-foreground" data-testid="raffle-disclaimer">
+                Todos los premios son financiados por las aportaciones de los 16 proveedores participantes. La logística incluye banda en vivo, mariachi, DJ y show profesional para mantener a los ejecutivos durante todo el evento.
+              </p>
             </div>
-            <p className="text-center text-sm text-muted-foreground" data-testid="raffle-disclaimer">
-              Imágenes ilustrativas. Premios sujetos a disponibilidad de patrocinadores. Aplican términos.
-            </p>
           </CardContent>
         </Card>
 

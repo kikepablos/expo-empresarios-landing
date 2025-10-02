@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "advance-medical-68626"
+  },
+  "targets": {
+    "advance-medical-68626": {
+      "hosting": {
+        "expo-empresarios": [
+          "expo-empresarios-de-la-baja"
+        ]
+      }
+    }
+  }
+}

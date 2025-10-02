@@ -1,11 +1,15 @@
-import { useState, useCallback, useMemo, FormEvent } from 'react';
+import { FormEvent, useCallback, useMemo, useState, useEffect } from 'react';
+import { useLocation, useSearch } from 'wouter';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { crearSolicitud, generarCodigoConfirmacion, enviarCorreoSolicitud } from '@/lib/firebase';
+import { submitRegistration } from '@/lib/firebaseFunctions';
+import { getInvitadoData, updateInvitadoData, crearSolicitud, generarCodigoConfirmacion, enviarCorreoConfirmacion, enviarCorreoSolicitud } from '@/lib/firebase';
 
 const guestTypeOptions = [
   { value: 'sin invitado', label: 'Sin invitado' },
@@ -23,9 +27,23 @@ const guestRelationshipOptions = [
 
 type GuestType = typeof guestTypeOptions[number]['value'];
 
-export default function ContactSection() {
-  const empresaId = import.meta.env.VITE_EMPRESA_ID || 'advance-medical-68626';
-  
+interface InvitadoData {
+  id: string;
+  nombre?: string;
+  apellidos?: string;
+  telefono?: string;
+  email?: string;
+  empresa?: string;
+  puesto?: string;
+  [key: string]: any;
+}
+
+export default function RegisterPage() {
+  const [, navigate] = useLocation();
+  const searchParams = new URLSearchParams(useSearch());
+  const invitadoId = searchParams.get('invitado');
+  const empresaId = import.meta.env.VITE_EMPRESA_ID || 'advance-medical-68626'; // ID de la empresa
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -42,9 +60,45 @@ export default function ContactSection() {
     guestRelationship: '',
     notes: '',
   });
-  
-  const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+
+  const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error' | 'loading'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
+  const [invitadoData, setInvitadoData] = useState<InvitadoData | null>(null);
+
+  // Cargar datos del invitado al montar el componente
+  useEffect(() => {
+    const loadInvitadoData = async () => {
+      if (!invitadoId) {
+        setStatus('idle');
+        return;
+      }
+
+      try {
+        setStatus('loading');
+        const data = await getInvitadoData(empresaId, invitadoId);
+        
+        if (data) {
+          setInvitadoData(data);
+          // Prellenar el formulario con los datos existentes
+          setFormData((prev) => ({
+            ...prev,
+            firstName: data.nombre || '',
+            lastName: data.apellidos || '',
+            phone: data.telefono || '',
+            email: data.email || '',
+            company: data.empresa || '',
+            role: data.puesto || '',
+          }));
+        }
+        setStatus('idle');
+      } catch (error) {
+        console.error('Error al cargar datos del invitado:', error);
+        setStatus('idle');
+      }
+    };
+
+    loadInvitadoData();
+  }, [invitadoId, empresaId]);
 
   const handleChange = useCallback((field: keyof typeof formData, value: string) => {
     setFormData((prev) => {
@@ -60,6 +114,7 @@ export default function ContactSection() {
           guestRelationship: '',
         };
       }
+
       return { ...prev, [field]: value };
     });
   }, []);
@@ -103,52 +158,126 @@ export default function ContactSection() {
       setErrorMessage('');
 
       try {
+        // Generar código de confirmación
         const codigoConfirmacion = generarCodigoConfirmacion();
-        
-        const solicitudData = {
-          nombre: formData.firstName,
-          apellidos: formData.lastName,
-          telefono: formData.phone,
-          email: formData.email,
-          empresa: formData.company,
-          puesto: formData.role,
-          tipoInvitado: formData.guestType,
-          invitadoAcompanante: formData.guestType === 'sin invitado'
-            ? null
-            : {
-                nombre: formData.guestFirstName,
-                apellidos: formData.guestLastName,
-                telefono: formData.guestPhone,
-                email: formData.guestEmail,
-                ...(formData.guestType === 'colaborador'
-                  ? { puesto: formData.guestRole }
-                  : { parentesco: formData.guestRelationship }),
-              },
-          notas: formData.notes,
-          codigoConfirmacion: codigoConfirmacion,
-        };
 
-        await crearSolicitud(empresaId, solicitudData);
+        // Si hay invitadoId, actualizar en Firestore
+        if (invitadoId) {
+          await updateInvitadoData(empresaId, invitadoId, {
+            nombre: formData.firstName,
+            apellidos: formData.lastName,
+            telefono: formData.phone,
+            email: formData.email,
+            empresa: formData.company,
+            puesto: formData.role,
+            tipoInvitado: formData.guestType,
+            invitadoAcompanante: formData.guestType === 'sin invitado'
+              ? null
+              : {
+                  nombre: formData.guestFirstName,
+                  apellidos: formData.guestLastName,
+                  telefono: formData.guestPhone,
+                  email: formData.guestEmail,
+                  ...(formData.guestType === 'colaborador'
+                    ? { puesto: formData.guestRole }
+                    : { parentesco: formData.guestRelationship }),
+                },
+            notas: formData.notes,
+            status: 'Confirmado',
+            codigoConfirmacion: codigoConfirmacion,
+          });
 
-        try {
-          await enviarCorreoSolicitud(
-            formData.email,
-            formData.firstName,
-            formData.lastName
-          );
-        } catch (emailError) {
-          console.error('Error al enviar correo:', emailError);
-        }
+          console.log('Datos actualizados en Firestore, enviando correo...');
+          
+          // Enviar correo de confirmación al invitado principal
+          try {
+            await enviarCorreoConfirmacion(
+              formData.email,
+              formData.firstName,
+              formData.lastName,
+              codigoConfirmacion,
+              formData.guestType !== 'sin invitado',
+              formData.guestType !== 'sin invitado' 
+                ? `${formData.guestFirstName} ${formData.guestLastName}` 
+                : undefined
+            );
+            console.log('Correo principal enviado exitosamente');
+          } catch (emailError) {
+            console.error('Error al enviar correo principal:', emailError);
+            // No lanzar el error para que el registro se complete
+          }
 
-        if (formData.guestType !== 'sin invitado' && formData.guestEmail) {
+          // Si hay invitado acompañante, enviarle correo también
+          if (formData.guestType !== 'sin invitado' && formData.guestEmail) {
+            try {
+              const codigoInvitado = generarCodigoConfirmacion();
+              await enviarCorreoConfirmacion(
+                formData.guestEmail,
+                formData.guestFirstName,
+                formData.guestLastName,
+                codigoInvitado,
+                false
+              );
+              console.log('Correo de acompañante enviado exitosamente');
+            } catch (emailError) {
+              console.error('Error al enviar correo de acompañante:', emailError);
+              // No lanzar el error para que el registro se complete
+            }
+          }
+        } else {
+          // Si no hay invitadoId, crear una nueva solicitud en Firestore
+          console.log('Creando nueva solicitud...');
+          
+          const solicitudData = {
+            nombre: formData.firstName,
+            apellidos: formData.lastName,
+            telefono: formData.phone,
+            email: formData.email,
+            empresa: formData.company,
+            puesto: formData.role,
+            tipoInvitado: formData.guestType,
+            invitadoAcompanante: formData.guestType === 'sin invitado'
+              ? null
+              : {
+                  nombre: formData.guestFirstName,
+                  apellidos: formData.guestLastName,
+                  telefono: formData.guestPhone,
+                  email: formData.guestEmail,
+                  ...(formData.guestType === 'colaborador'
+                    ? { puesto: formData.guestRole }
+                    : { parentesco: formData.guestRelationship }),
+                },
+            notas: formData.notes,
+            codigoConfirmacion: codigoConfirmacion,
+          };
+
+          await crearSolicitud(empresaId, solicitudData);
+          console.log('Solicitud creada exitosamente');
+
+          // Enviar correo de recepción de solicitud al solicitante
           try {
             await enviarCorreoSolicitud(
-              formData.guestEmail,
-              formData.guestFirstName,
-              formData.guestLastName
+              formData.email,
+              formData.firstName,
+              formData.lastName
             );
+            console.log('Correo de solicitud enviado exitosamente');
           } catch (emailError) {
-            console.error('Error al enviar correo de acompañante:', emailError);
+            console.error('Error al enviar correo de solicitud:', emailError);
+          }
+
+          // Si hay invitado acompañante, enviarle correo también
+          if (formData.guestType !== 'sin invitado' && formData.guestEmail) {
+            try {
+              await enviarCorreoSolicitud(
+                formData.guestEmail,
+                formData.guestFirstName,
+                formData.guestLastName
+              );
+              console.log('Correo de acompañante de solicitud enviado exitosamente');
+            } catch (emailError) {
+              console.error('Error al enviar correo de acompañante de solicitud:', emailError);
+            }
           }
         }
 
@@ -173,29 +302,55 @@ export default function ContactSection() {
         console.error('Registration error', error);
         setStatus('error');
         setErrorMessage(
-          error instanceof Error ? error.message : 'No pudimos enviar tu registro. Intenta nuevamente.'
+          error instanceof Error ? error.message : 'No pudimos enviar tu registro. Intenta nuevamente en unos minutos.',
         );
       }
     },
-    [formData, isFormValid, status, empresaId]
+    [formData, isFormValid, status, invitadoId, empresaId],
   );
 
+  // Mostrar loading mientras se cargan los datos
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Cargando información...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <section id="contacto" className="py-16 md:py-24" data-testid="contact-section">
-      <div className="container mx-auto px-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="font-serif text-3xl md:text-4xl font-bold mb-4" data-testid="contact-title">
-              Confirma tu participación en la 12ª Expo Empresarios de la Baja
-            </h2>
-            <p className="text-xl text-muted-foreground" data-testid="contact-subtitle">
-              Completa tus datos para enviarte la ficha de pago y asegurar tu espacio. Cupo limitado a 16 proveedores.
+    <div className="min-h-screen bg-background text-foreground">
+      <Navigation onRegisterClick={() => navigate('/registro')} />
+
+      <main className="pt-24 pb-16">
+        <section className="relative overflow-hidden">
+          <div className="absolute inset-0">
+            <img
+              src="https://images.unsplash.com/photo-1549924231-f129b911e442?w=1600&fit=crop"
+              alt="Registro Expo Empresarios"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/70" />
+          </div>
+          <div className="relative container mx-auto px-4 py-24 text-center">
+            <h1 className="font-serif text-4xl md:text-5xl font-bold text-primary mb-4">
+              {invitadoId ? 'Completa tu registro' : 'Regístrate para la 12ª Expo Empresarios'}
+            </h1>
+            <p className="max-w-2xl mx-auto text-foreground/90">
+              {invitadoId
+                ? 'Completa tu información para confirmar tu asistencia a la 12ª Expo Empresarios de la Baja.'
+                : 'Completa tus datos para asegurar tu espacio. Te confirmaremos tu registro entre 24 y 72 horas hábiles.'}
             </p>
           </div>
+        </section>
 
-          <Card className="bg-card border border-border shadow-xl">
-            <form className="p-8 space-y-6" onSubmit={handleSubmit}>
+        <section className="container mx-auto px-4 mt-12">
+          <div className="grid lg:grid-cols-[2fr_1fr] gap-10 items-start">
+            <Card className="bg-[#0b0b0b] border border-border shadow-xl">
+              <form className="p-8 space-y-6" onSubmit={handleSubmit}>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">Nombre *</Label>
@@ -282,7 +437,7 @@ export default function ContactSection() {
                 </div>
 
                 {needsGuestFields && (
-                  <div className="space-y-4 border border-border/50 rounded-xl p-6 bg-muted/50">
+                  <div className="space-y-4 border border-border/50 rounded-xl p-6 bg-black/40">
                     <h3 className="font-serif text-xl text-primary">
                       {formData.guestType === 'colaborador' ? 'Datos del colaborador' : 'Datos del invitado'}
                     </h3>
@@ -379,23 +534,59 @@ export default function ContactSection() {
                 )}
                 {status === 'success' && (
                   <p className="text-sm text-green-500">
-                    ¡Gracias por registrarte! Tu solicitud será revisada y nos pondremos en contacto contigo muy pronto.
+                    {invitadoId
+                      ? '¡Gracias por confirmar tu asistencia! Nos vemos en la Expo Empresarios de la Baja.'
+                      : '¡Gracias por registrarte! Tu solicitud será revisada y nos pondremos en contacto contigo muy pronto.'}
                   </p>
                 )}
 
-                <div className="flex justify-center">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <Button
                     type="submit"
                     disabled={!isFormValid || status === 'sending'}
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 px-8"
+                    className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
                   >
                     {status === 'sending' ? 'Enviando...' : 'Enviar registro'}
                   </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => navigate('/')}
+                  >
+                    Volver al inicio
+                  </Button>
                 </div>
               </form>
-          </Card>
-        </div>
-      </div>
-    </section>
+            </Card>
+
+            <aside className="space-y-6">
+              <Card className="bg-black/50 border border-border p-6">
+                <h3 className="font-serif text-2xl text-primary mb-3">¿Qué sigue después del registro?</h3>
+                <ul className="space-y-3 text-sm text-muted-foreground">
+                  <li>1. Nuestro equipo revisará tu solicitud y disponibilidad de espacios.</li>
+                  <li>2. Si ya está su registro completo y autorizado, solo imprima su gafete, y el de su invitado, y preséntese con una identificación el día de la Expo.</li>
+                </ul>
+              </Card>
+
+              <Card className="bg-black/50 border border-border p-6">
+                <h3 className="font-serif text-xl text-primary mb-3">Información de contacto</h3>
+                <p className="text-sm text-muted-foreground">
+                  ¿Tienes preguntas adicionales? Escríbenos a{' '}
+                  <a href="mailto:registro@expoempresarioslabaja.com" className="text-primary underline">
+                    registro@expoempresarioslabaja.com
+                  </a>{' '}
+                  o envíanos un mensaje por WhatsApp.
+                </p>
+              </Card>
+            </aside>
+          </div>
+        </section>
+      </main>
+
+      <Footer />
+    </div>
   );
 }
+
+

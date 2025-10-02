@@ -64,10 +64,10 @@ export default function HeroCarousel({ slides, onRegisterClick }: HeroCarouselPr
       <div className="relative z-10 flex items-center justify-center h-full">
         <div className="text-center max-w-4xl mx-auto px-4">
           <h1 className="font-serif text-6xl md:text-7xl text-white mb-6" data-testid="hero-title">
-            Únete a la experiencia de La Baja
+            Invitación a la 12ª Expo Empresarios de la Baja
           </h1>
           <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto" data-testid="hero-subtitle">
-            El punto de encuentro #1 de proveedores para hoteles
+            Viernes 21 de noviembre 2025 · Hotel Krystal Grand Los Cabos · Cupo para 16 proveedores y 600+ ejecutivos invitados
           </p>
           <Button
             size="lg"

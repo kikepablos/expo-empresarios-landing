@@ -25,33 +25,33 @@ export default function IncludesSection({ onScrollToEvent }: IncludesSectionProp
   const items: IncludeItem[] = [
     {
       icon: 'store',
-      label: 'Zona de Expositores',
-      desc: 'Marcas líderes con soluciones para todas las áreas del hotel.'
+      label: 'Invitación especial a',
+      desc: 'Todos nuestros invitados son líderes clave en la industria, con poder de decisión sobre compras, alianzas comerciales y tendencias culinarias en la región: Gerentes de Hoteles, Directores de Alimentos y Bebidas, Chefs Ejecutivos, Gerentes de Compra y Dueños de Restaurantes y Bares.'
     },
     {
       icon: 'mic',
-      label: 'Conferencias & Demos',
-      desc: 'Tendencias, casos reales y tecnología aplicable.'
+      label: 'Degustaciones y demos',
+      desc: 'Organiza presentaciones, catas y reuniones privadas con ejecutivos clave.'
     },
     {
       icon: 'handshake',
-      label: 'Rueda de Negocios 1:1',
-      desc: 'Agenda citas con proveedores clave.'
+      label: 'Derecho para invitado',
+      desc: 'Le invitamos a compartir esta experiencia con alguien clave en su entorno profesional: puede ser su asistente, un ejecutivo de su equipo o incluso un amigo personal con interés en el sector. Asistir en pareja o como equipo fortalece el networking, facilita la toma de decisiones y multiplica las oportunidades de negocio que esta expo ofrece a hoteles y restaurantes locales.'
     },
     {
       icon: 'wine',
-      label: 'Networking VIP',
-      desc: 'Cierre de día con contactos de alto impacto.'
+      label: 'Gran fiesta de networking',
+      desc: 'Banda en vivo, show profesional, mariachi, DJ y barra ilimitada durante 8 horas.'
     },
     {
       icon: 'gift',
-      label: 'Rifa Oficial',
-      desc: 'Participa por premios para tu hotel (ver detalles).'
+      label: 'Rifas y regalos',
+      desc: 'Televisiones, aires acondicionados, viajes y más incentivos para mantener al público.'
     },
     {
       icon: 'image',
-      label: 'Galería Histórica',
-      desc: 'Revisa ediciones anteriores y casos de éxito.'
+      label: 'Cobertura y difusión',
+      desc: 'Entrega personalizada de invitaciones y presencia constante ante la hotelería de Los Cabos.'
     }
   ];
 
@@ -85,16 +85,17 @@ export default function IncludesSection({ onScrollToEvent }: IncludesSectionProp
           })}
         </div>
 
-        <div className="text-center">
+        {/* TODO: Eliminar botón de agenda y detalles de pago según solicitud del cliente */}
+        {/* <div className="text-center">
           <Button
             variant="outline"
             size="lg"
             onClick={onScrollToEvent}
             data-testid="button-view-agenda"
           >
-            Ver Agenda Preliminar
+            Solicitar agenda y detalles de pago
           </Button>
-        </div>
+        </div> */}
       </div>
     </section>
   );

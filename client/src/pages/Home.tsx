@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
 import Navigation from '@/components/Navigation';
 import HeroCarousel from '@/components/HeroCarousel';
 import Marquee from '@/components/Marquee';
@@ -9,104 +10,89 @@ import RaffleSection from '@/components/RaffleSection';
 import Gallery from '@/components/Gallery';
 import ContactSection from '@/components/ContactSection';
 import Footer from '@/components/Footer';
-import RegistrationModal from '@/components/RegistrationModal';
-
-// Import generated images
-import heroImage1 from '@assets/generated_images/Hotel_supplier_trade_show_bfcc9c37.png';
-import heroImage2 from '@assets/generated_images/Hotel_amenities_display_05ff5c9a.png';
-import heroImage3 from '@assets/generated_images/Business_handshake_deal_ac437db6.png';
-import heroImage4 from '@assets/generated_images/Hotel_industry_conference_5c55b8b3.png';
-import heroImage5 from '@assets/generated_images/Hotel_technology_equipment_871583bb.png';
+import { getCarrouselImages, getGaleriaImages } from '@/lib/firebase';
 import networkingImage from '@assets/generated_images/Business_networking_event_68afdf8a.png';
 
 export default function Home() {
-  const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
+  const [, navigate] = useLocation();
+  const [heroSlides, setHeroSlides] = useState<any[]>([]);
+  const [galeriaImages, setGaleriaImages] = useState<any[]>([]);
+  const [loadingCarrousel, setLoadingCarrousel] = useState(true);
+  const [loadingGaleria, setLoadingGaleria] = useState(true);
+  const empresaId = import.meta.env.VITE_EMPRESA_ID || 'advance-medical-68626';
 
-  // Hero carousel slides
-  const heroSlides = [
-    {
-      id: 1,
-      image: heroImage1,
-      alt: 'Stands de proveedores con hoteleros visitando'
-    },
-    {
-      id: 2,
-      image: heroImage2,
-      alt: 'Productos de amenidades exhibidos'
-    },
-    {
-      id: 3,
-      image: heroImage3,
-      alt: 'Apretón de manos cerrando trato'
-    },
-    {
-      id: 4,
-      image: heroImage4,
-      alt: 'Ponencia con profesionales hoteleros'
-    },
-    {
-      id: 5,
-      image: heroImage5,
-      alt: 'Tecnologías para gestión hotelera'
-    }
-  ];
+  // Cargar imágenes del carrousel desde Firebase
+  useEffect(() => {
+    const loadCarrouselImages = async () => {
+      try {
+        setLoadingCarrousel(true);
+        const images = await getCarrouselImages(empresaId);
+        
+        if (images && images.length > 0) {
+          // Mapear las imágenes de Firebase al formato esperado por el componente
+          const slides = images.map((img: any) => ({
+            id: img.id,
+            image: img.url,
+            alt: img.alt
+          }));
+          setHeroSlides(slides);
+        }
+      } catch (error) {
+        console.error('Error al cargar imágenes del carrousel:', error);
+      } finally {
+        setLoadingCarrousel(false);
+      }
+    };
+
+    loadCarrouselImages();
+  }, [empresaId]);
+
+  // Cargar imágenes de la galería desde Firebase
+  useEffect(() => {
+    const loadGaleriaImages = async () => {
+      try {
+        setLoadingGaleria(true);
+        const images = await getGaleriaImages(empresaId);
+        
+        if (images && images.length > 0) {
+          // Mapear las imágenes de Firebase al formato esperado por Gallery
+          const gallerySlides = images.map((img: any) => ({
+            id: img.id,
+            url: img.url,
+            alt: img.alt
+          }));
+          setGaleriaImages(gallerySlides);
+        }
+      } catch (error) {
+        console.error('Error al cargar imágenes de la galería:', error);
+      } finally {
+        setLoadingGaleria(false);
+      }
+    };
+
+    loadGaleriaImages();
+  }, [empresaId]);
 
   // Marquee words
   const marqueeWords = [
-    "Innovación Hotelera",
-    "Proveedores Certificados",
-    "Equipamiento & Mobiliario",
-    "Amenidades & Blancos",
-    "A&B · Cafetería · Cocina",
-    "Energía & Sustentabilidad",
-    "Limpieza & Mantenimiento",
-    "Seguridad & Cerraduras",
-    "Tecnología · PMS · Channel Manager",
-    "Marketing & OTA",
-    "Decoración & Interiorismo",
-    "Servicios Financieros & Seguros"
+    "Participantes: 16 Proveedores",
+    "600+ Ejecutivos Invitados",
+    "Hotel Krystal Grand Los Cabos",
+    "Citas 1:1 con Compradores",
+    "Degustaciones y Networking",
+    "Rifas con Grandes Premios",
+    "Banda en Vivo y Mariachi",
+    "Show Profesional",
+    "Gastos cubiertos por la Expo",
+    "Desde 2012 Impulsando Negocios",
+    "Expo Amigos Los Cabos",
+    "Expo Empresarios de la Baja"
   ];
 
-  // Mock gallery images - todo: remove mock functionality
-  const galleryImages = [
-    {
-      id: 1,
-      src: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=400&fit=crop',
-      alt: 'Edición 2023 - Networking',
-      year: '2023'
-    },
-    {
-      id: 2,
-      src: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=400&h=400&fit=crop',
-      alt: 'Edición 2022 - Conferencias',
-      year: '2022'
-    },
-    {
-      id: 3,
-      src: 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=400&h=400&fit=crop',
-      alt: 'Edición 2021 - Expositores',
-      year: '2021'
-    },
-    {
-      id: 4,
-      src: 'https://images.unsplash.com/photo-1582192730841-2a8d94f2eeae?w=400&h=400&fit=crop',
-      alt: 'Edición 2020 - Stands',
-      year: '2020'
-    }
-  ];
 
-  const handleRegisterClick = () => {
-    setIsRegistrationOpen(true);
-  };
-
-  const handleExhibitorClick = () => {
-    console.log('Exhibitor interest clicked');
-    // In real app: scroll to contact or open exhibitor form
-    const contactSection = document.querySelector('#contacto');
-    if (contactSection) {
-      contactSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  const handleRegisterClick = useCallback(() => {
+    navigate('/registro');
+  }, [navigate]);
 
   const handleScrollToEvent = () => {
     const eventSection = document.querySelector('#evento');
@@ -118,17 +104,40 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Navigation */}
-      <Navigation
-        onRegisterClick={handleRegisterClick}
-        onExhibitorClick={handleExhibitorClick}
-      />
+      <Navigation onRegisterClick={handleRegisterClick} />
 
       {/* Hero Section */}
       <div id="hero">
-        <HeroCarousel
-          slides={heroSlides}
-          onRegisterClick={handleRegisterClick}
-        />
+        {loadingCarrousel ? (
+          <div className="h-screen flex items-center justify-center bg-gradient-to-r from-primary to-secondary">
+            <div className="text-center text-white">
+              <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-white mx-auto mb-4"></div>
+              <p className="text-xl">Cargando...</p>
+            </div>
+          </div>
+        ) : heroSlides.length > 0 ? (
+          <HeroCarousel
+            slides={heroSlides}
+            onRegisterClick={handleRegisterClick}
+          />
+        ) : (
+          <div className="h-screen flex items-center justify-center bg-gradient-to-r from-primary to-secondary">
+            <div className="text-center text-white px-4">
+              <h1 className="text-5xl md:text-6xl font-serif font-bold mb-4">
+                12ª Expo Empresarios de la Baja
+              </h1>
+              <p className="text-xl md:text-2xl mb-8">
+                Los Cabos, Baja California Sur
+              </p>
+              <button
+                onClick={handleRegisterClick}
+                className="bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all"
+              >
+                Regístrate Ahora
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Marquee */}
@@ -136,8 +145,8 @@ export default function Home() {
 
       {/* Countdown Timer */}
       <CountdownTimer
-        targetDate="2025-11-14T10:00:00-07:00"
-        title="Faltan para el gran día"
+        targetDate="2025-11-21T09:00:00-07:00"
+        title="Faltan para la 12ª Expo Empresarios de la Baja"
       />
 
       {/* About Event */}
@@ -150,19 +159,12 @@ export default function Home() {
       <RaffleSection onRegisterClick={handleRegisterClick} />
 
       {/* Gallery */}
-      <Gallery images={galleryImages} />
-
+      {!loadingGaleria && <Gallery images={galeriaImages} />}
       {/* Contact Section */}
       <ContactSection />
 
       {/* Footer */}
       <Footer />
-
-      {/* Registration Modal */}
-      <RegistrationModal
-        isOpen={isRegistrationOpen}
-        onClose={() => setIsRegistrationOpen(false)}
-      />
     </div>
   );
 }

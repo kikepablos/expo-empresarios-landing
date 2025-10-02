@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Facebook, Instagram, Linkedin } from 'lucide-react';
+import logoImage from '@assets/logo.png';
 
 export default function Footer() {
   const socialLinks = [
@@ -30,14 +31,16 @@ export default function Footer() {
         <div className="grid md:grid-cols-3 gap-8 items-center">
           {/* Logo */}
           <div className="flex items-center justify-center md:justify-start">
-            <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mr-4">
-              <span className="text-primary-foreground font-bold text-2xl">E</span>
-            </div>
+            <img
+              src={logoImage}
+              alt="Logo Expo Empresarios de la Baja"
+              className="w-20 h-20 object-contain mr-4"
+            />
             <div>
               <h3 className="font-serif text-xl font-bold text-primary">
-                Expo Empresarios
+                Expo Empresarios de la Baja
               </h3>
-              <p className="text-sm text-background/80">de La Baja</p>
+              <p className="text-sm text-background/80">21 noviembre 2025 · Hotel Krystal Grand Los Cabos</p>
             </div>
           </div>
 
@@ -77,7 +80,7 @@ export default function Footer() {
 
         <div className="border-t border-background/20 mt-8 pt-8 text-center">
           <p className="text-sm text-background/60" data-testid="footer-copyright">
-            © 2012–2025 Expo Empresarios de La Baja. Todos los derechos reservados.
+            © 2012–2025 Expo Empresarios de la Baja. 12ª edición confirmada. Pagos en 3 parcialidades: $28,000 · $14,420 · $14,420.
           </p>
         </div>
       </div>
