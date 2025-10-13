@@ -1,8 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, User, Calendar, Contact, UserCircle, LogOut } from 'lucide-react';
 import logoImage from '@assets/logo.png';
 import { useLocation } from 'wouter';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { onAuthChange, logoutExpositor, getCurrentUser } from '@/lib/firebase';
+import type { User as FirebaseUser } from 'firebase/auth';
 
 interface NavigationProps {
   onRegisterClick: () => void;
@@ -25,6 +35,35 @@ const navItems: NavItem[] = [
 export default function Navigation({ onRegisterClick }: NavigationProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [location, navigate] = useLocation();
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Escuchar cambios en autenticación
+  useEffect(() => {
+    const unsubscribe = onAuthChange((currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+
+    // Verificar si ya hay un usuario al cargar
+    const currentUser = getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
+    }
+    setLoading(false);
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logoutExpositor();
+      setUser(null);
+      navigate('/');
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+    }
+  };
 
   const handleNavClick = (item: NavItem) => {
     if (item.type === 'anchor') {
@@ -105,6 +144,60 @@ export default function Navigation({ onRegisterClick }: NavigationProps) {
             >
               Registrarme
             </Button>
+
+            {/* User Menu */}
+            {!loading && (
+              user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="rounded-full w-10 h-10 bg-primary/10 hover:bg-primary/20"
+                    >
+                      <User className="w-5 h-5 text-primary" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">Mi Cuenta</p>
+                        <p className="text-xs leading-none text-muted-foreground truncate">
+                          {user.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate('/mis-contactos')}>
+                      <Contact className="mr-2 h-4 w-4" />
+                      <span>Mis Contactos</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/mis-citas')}>
+                      <Calendar className="mr-2 h-4 w-4" />
+                      <span>Mis Citas</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/mi-perfil')}>
+                      <UserCircle className="mr-2 h-4 w-4" />
+                      <span>Mi Perfil</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Cerrar Sesión</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button
+                  onClick={() => navigate('/login')}
+                  variant="outline"
+                  className="rounded-full"
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  Iniciar Sesión
+                </Button>
+              )
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -139,6 +232,74 @@ export default function Navigation({ onRegisterClick }: NavigationProps) {
                 >
                   Registrarme
                 </Button>
+                
+                {/* Mobile User Menu */}
+                {!loading && (
+                  user ? (
+                    <>
+                      <div className="pt-2 pb-1">
+                        <p className="text-xs text-muted-foreground px-2">Mi Cuenta</p>
+                        <p className="text-sm font-medium px-2 truncate">{user.email}</p>
+                      </div>
+                      <Button
+                        onClick={() => {
+                          navigate('/mis-contactos');
+                          setIsMobileMenuOpen(false);
+                        }}
+                        variant="ghost"
+                        className="w-full justify-start"
+                      >
+                        <Contact className="mr-2 h-4 w-4" />
+                        Mis Contactos
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          navigate('/mis-citas');
+                          setIsMobileMenuOpen(false);
+                        }}
+                        variant="ghost"
+                        className="w-full justify-start"
+                      >
+                        <Calendar className="mr-2 h-4 w-4" />
+                        Mis Citas
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          navigate('/mi-perfil');
+                          setIsMobileMenuOpen(false);
+                        }}
+                        variant="ghost"
+                        className="w-full justify-start"
+                      >
+                        <UserCircle className="mr-2 h-4 w-4" />
+                        Mi Perfil
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          handleLogout();
+                          setIsMobileMenuOpen(false);
+                        }}
+                        variant="ghost"
+                        className="w-full justify-start text-red-600"
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Cerrar Sesión
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      onClick={() => {
+                        navigate('/login');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <User className="mr-2 h-4 w-4" />
+                      Iniciar Sesión
+                    </Button>
+                  )
+                )}
               </div>
             </div>
           </div>
@@ -147,4 +308,5 @@ export default function Navigation({ onRegisterClick }: NavigationProps) {
     </nav>
   );
 }
+
 

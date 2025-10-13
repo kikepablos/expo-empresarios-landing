@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { crearSolicitud, generarCodigoConfirmacion, enviarCorreoSolicitud } from '@/lib/firebase';
+import { EMPRESA_ID } from '@/config/constants';
 
 const guestTypeOptions = [
   { value: 'sin invitado', label: 'Sin invitado' },
@@ -24,7 +25,7 @@ const guestRelationshipOptions = [
 type GuestType = typeof guestTypeOptions[number]['value'];
 
 export default function ContactSection() {
-  const empresaId = import.meta.env.VITE_EMPRESA_ID || 'advance-medical-68626';
+  const empresaId = EMPRESA_ID;
   
   const [formData, setFormData] = useState({
     firstName: '',

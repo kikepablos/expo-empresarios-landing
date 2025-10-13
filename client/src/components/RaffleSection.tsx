@@ -19,7 +19,7 @@ export default function RaffleSection({ onRegisterClick }: RaffleSectionProps) {
     "Registro confirmado y pase escaneado a la entrada para activar boleto",
     "Rifas esporádicas durante las 8 horas del evento para mantener a los invitados",
     "Al llegar, lo invitamos a recorrer los stands y descubrir las propuestas de nuestros expositores. Al finalizar su recorrido, podrá depositar su invitación en la tómbola como muestra de agradecimiento por su participación activa en la expo y su valioso apoyo a los patrocinadores que hacen posible este evento.",
-    "Premios entregados únicamente a ejecutivos presentes o su representante"
+    "Premios entregados únicamente a ejecutivos presentes"
   ];
 
   return (

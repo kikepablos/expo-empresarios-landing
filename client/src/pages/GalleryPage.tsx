@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { getGaleriaImages } from '@/lib/firebase';
+import { EMPRESA_ID } from '@/config/constants';
 
 export default function GalleryPage() {
   const [, navigate] = useLocation();
@@ -10,7 +11,7 @@ export default function GalleryPage() {
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const empresaId = import.meta.env.VITE_EMPRESA_ID || 'advance-medical-68626';
+  const empresaId = EMPRESA_ID;
 
   // Cargar imágenes de la galería desde Firebase
   useEffect(() => {

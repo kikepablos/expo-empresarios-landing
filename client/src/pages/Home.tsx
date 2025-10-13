@@ -10,16 +10,20 @@ import RaffleSection from '@/components/RaffleSection';
 import Gallery from '@/components/Gallery';
 import ContactSection from '@/components/ContactSection';
 import Footer from '@/components/Footer';
-import { getCarrouselImages, getGaleriaImages } from '@/lib/firebase';
+import ExpositorCarousel from '@/components/ExpositorCarousel';
+import { getCarrouselImages, getGaleriaImages, getExpositores } from '@/lib/firebase';
+import { EMPRESA_ID } from '@/config/constants';
 import networkingImage from '@assets/generated_images/Business_networking_event_68afdf8a.png';
 
 export default function Home() {
   const [, navigate] = useLocation();
   const [heroSlides, setHeroSlides] = useState<any[]>([]);
   const [galeriaImages, setGaleriaImages] = useState<any[]>([]);
+  const [expositores, setExpositores] = useState<any[]>([]);
   const [loadingCarrousel, setLoadingCarrousel] = useState(true);
   const [loadingGaleria, setLoadingGaleria] = useState(true);
-  const empresaId = import.meta.env.VITE_EMPRESA_ID || 'advance-medical-68626';
+  const [loadingExpositores, setLoadingExpositores] = useState(true);
+  const empresaId = EMPRESA_ID;
 
   // Cargar imágenes del carrousel desde Firebase
   useEffect(() => {
@@ -71,6 +75,23 @@ export default function Home() {
     };
 
     loadGaleriaImages();
+  }, [empresaId]);
+
+  // Cargar expositores desde Firebase
+  useEffect(() => {
+    const loadExpositores = async () => {
+      try {
+        setLoadingExpositores(true);
+        const data = await getExpositores(empresaId);
+        setExpositores(data);
+      } catch (error) {
+        console.error('Error al cargar expositores:', error);
+      } finally {
+        setLoadingExpositores(false);
+      }
+    };
+
+    loadExpositores();
   }, [empresaId]);
 
   // Marquee words
@@ -148,6 +169,11 @@ export default function Home() {
         targetDate="2025-11-21T09:00:00-07:00"
         title="Faltan para la 12ª Expo Empresarios de la Baja"
       />
+
+      {/* Expositores Carousel */}
+      {!loadingExpositores && expositores.length > 0 && (
+        <ExpositorCarousel expositores={expositores} />
+      )}
 
       {/* About Event */}
       <AboutEvent image={networkingImage} />
