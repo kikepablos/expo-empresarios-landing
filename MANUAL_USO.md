@@ -18,7 +18,7 @@
 #### Paso 2: Enviar Invitación
 1. El sistema genera automáticamente un código de confirmación
 2. Se envía correo con link personalizado:
-   - Link: `https://expo-empresarios-de-la-baja.web.app/registro?invitado={ID}`
+   - Link: `convencion-baja.scaleflow.tech/registro?invitado={ID}`
 3. El invitado recibe el correo y puede completar su registro
 
 #### Paso 3: Invitado Completa Registro
@@ -59,7 +59,7 @@ await enviarCorreoInvitacionExpositor(
 
 #### Paso 3: Expositor Completa Registro
 1. Expositor recibe correo con link:
-   - Link: `https://expo-empresarios-de-la-baja.web.app/registro-expositor?expositor={ID}`
+   - Link: `convencion-baja.scaleflow.tech/registro-expositor?expositor={ID}`
 2. Completa formulario en landing page:
    - Logo cuadrado
    - Descripción de productos/servicios
@@ -217,10 +217,10 @@ npm run build
 
 ## 📱 URLs del Sistema
 
-- **Landing Page**: https://expo-empresarios-de-la-baja.web.app
-- **Registro Invitados**: https://expo-empresarios-de-la-baja.web.app/registro?invitado={ID}
-- **Registro Expositores**: https://expo-empresarios-de-la-baja.web.app/registro-expositor?expositor={ID}
-- **Galería**: https://expo-empresarios-de-la-baja.web.app/galeria
+- **Landing Page**: convencion-baja.scaleflow.tech
+- **Registro Invitados**: convencion-baja.scaleflow.tech/registro?invitado={ID}
+- **Registro Expositores**: convencion-baja.scaleflow.tech/registro-expositor?expositor={ID}
+- **Galería**: convencion-baja.scaleflow.tech/galeria
 
 ---
 

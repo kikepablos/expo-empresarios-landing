@@ -34,7 +34,7 @@ VITE_EMPRESA_ID=advance-medical-68626
 Cuando un invitado hace click en el botón del correo de invitación:
 
 ```
-https://expo-empresarios-de-la-baja.web.app/registro?invitado=abc123xyz
+convencion-baja.scaleflow.tech/registro?invitado=abc123xyz
 ```
 
 La página:

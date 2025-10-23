@@ -105,17 +105,6 @@ export default function RaffleSection({ onRegisterClick }: RaffleSectionProps) {
             </div>
           </CardContent>
         </Card>
-
-        <div className="text-center">
-          <Button
-            size="lg"
-            onClick={onRegisterClick}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg rounded-full"
-            data-testid="button-register-raffle"
-          >
-            Registrarme para la rifa
-          </Button>
-        </div>
       </div>
     </section>
   );

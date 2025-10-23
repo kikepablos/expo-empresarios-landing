@@ -24,7 +24,7 @@ export default function ProfileBadges({ profile }: ProfileBadgesProps) {
   // Generar QR Code
   const generateQRCode = async (invitadoId: string): Promise<string> => {
     try {
-      const qrUrl = `https://expo-empresarios-de-la-baja.web.app/invitado/${invitadoId}`;
+      const qrUrl = `convencion-baja.scaleflow.tech/invitado/${invitadoId}`;
       return await QRCode.toDataURL(qrUrl, {
         width: 200,
         margin: 1,
@@ -232,7 +232,7 @@ export default function ProfileBadges({ profile }: ProfileBadgesProps) {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
         
-        const qrUrl = `https://expo-empresarios-de-la-baja.web.app/invitado/${profile.id}`;
+        const qrUrl = `convencion-baja.scaleflow.tech/invitado/${profile.id}`;
         console.log('✅ Generando QR del usuario con URL:', qrUrl);
         QRCode.toCanvas(canvasRefUser.current, qrUrl, {
           width: 110,
@@ -266,7 +266,7 @@ export default function ProfileBadges({ profile }: ProfileBadgesProps) {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
         
-        const qrUrl = `https://expo-empresarios-de-la-baja.web.app/invitado/${guestData.id}`;
+        const qrUrl = `convencion-baja.scaleflow.tech/invitado/${guestData.id}`;
         console.log('✅ Generando QR del acompañante con URL:', qrUrl);
         QRCode.toCanvas(canvasRefGuest.current, qrUrl, {
           width: 110,

@@ -3,7 +3,7 @@ import App from "./App";
 import "./index.css";
 
 // Version de la aplicación - incrementar cuando haya cambios importantes
-const APP_VERSION = "1.0.2";
+const APP_VERSION = "1.0.5";
 
 // Limpiar caché si la versión cambió
 function clearCacheIfNeeded() {

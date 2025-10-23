@@ -564,7 +564,7 @@ export async function enviarCorreoInvitacionExpositor(
   try {
     console.log('Enviando correo de invitación a expositor:', email);
     const emailAPIUrl = 'https://us-central1-advance-medical-68626.cloudfunctions.net/emailAPI/sendEmail';
-    const registroUrl = `https://expo-empresarios-de-la-baja.web.app/registro-expositor?expositor=${expositorId}`;
+    const registroUrl = `convencion-baja.scaleflow.tech/registro-expositor?expositor=${expositorId}`;
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -878,37 +878,118 @@ export async function sendWelcomeEmail(
 
 /**
  * Inicia sesión con email y contraseña
+ * Verifica que el usuario exista en expositores o contactos
  */
-export async function loginExpositor(email: string, password: string) {
+export async function loginExpositor(email: string, password: string, empresaId: string) {
   try {
     console.log('🔐 Iniciando sesión para:', email);
 
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    console.log('✅ Sesión iniciada exitosamente. UID:', user.uid);
+    console.log('✅ Autenticación exitosa. UID:', user.uid);
+    console.log('🔍 Verificando existencia del usuario en Firestore...');
 
-    return {
-      success: true,
-      uid: user.uid,
-      email: user.email,
-    };
+    // Verificar que el usuario exista en expositores o contactos
+    const userUid = user.uid;
+    
+    // Buscar en expositores
+    const expositoresRef = collection(db, `empresas/${empresaId}/expositores`);
+    const expositoresQuery = query(expositoresRef, where('userUid', '==', userUid));
+    const expositoresSnapshot = await getDocs(expositoresQuery);
+
+    if (!expositoresSnapshot.empty) {
+      const expositorData = expositoresSnapshot.docs[0].data();
+      console.log('✅ Usuario encontrado en expositores');
+      return {
+        success: true,
+        uid: user.uid,
+        email: user.email,
+        userType: 'expositor',
+        userData: expositorData,
+      };
+    }
+
+    // Buscar en contactos
+    const contactosRef = collection(db, `empresas/${empresaId}/contactos`);
+    const contactosQuery = query(contactosRef, where('userUid', '==', userUid));
+    const contactosSnapshot = await getDocs(contactosQuery);
+
+    if (!contactosSnapshot.empty) {
+      const contactoData = contactosSnapshot.docs[0].data();
+      console.log('✅ Usuario encontrado en contactos');
+      return {
+        success: true,
+        uid: user.uid,
+        email: user.email,
+        userType: 'contacto',
+        userData: contactoData,
+      };
+    }
+
+    // Si no se encuentra en expositores ni contactos, verificar si es administrador
+    console.log('🔍 No encontrado en expositores/contactos. Verificando si es administrador...');
+    
+    // Buscar en la colección raíz "usuarios" (administradores)
+    const usuariosRef = collection(db, 'usuarios');
+    const usuariosQuery = query(usuariosRef, where('email', '==', email));
+    const usuariosSnapshot = await getDocs(usuariosQuery);
+
+    if (!usuariosSnapshot.empty) {
+      // El usuario existe en la tabla de administradores
+      console.warn('⚠️ Intento de acceso con cuenta de administrador');
+      await signOut(auth);
+      throw new Error('Esta cuenta es de administrador. Por favor, ingresa en: https://emdb-dashboard.web.app/');
+    }
+
+    // Si no se encuentra en ninguna colección, cerrar sesión
+    console.error('❌ Usuario autenticado pero no encontrado en Firestore');
+    await signOut(auth);
+    throw new Error('Tu cuenta no está registrada en el sistema. Por favor, completa tu registro o contacta al administrador.');
+
   } catch (error: any) {
     console.error('❌ Error al iniciar sesión:', error);
+    console.error('❌ Código de error:', error.code);
 
-    let errorMessage = 'Error al iniciar sesión';
-    if (error.code === 'auth/user-not-found') {
-      errorMessage = 'No existe una cuenta con este correo electrónico';
-    } else if (error.code === 'auth/wrong-password') {
-      errorMessage = 'Contraseña incorrecta';
-    } else if (error.code === 'auth/invalid-email') {
-      errorMessage = 'Correo electrónico inválido';
-    } else if (error.code === 'auth/user-disabled') {
-      errorMessage = 'Esta cuenta ha sido deshabilitada';
-    } else if (error.code === 'auth/too-many-requests') {
-      errorMessage = 'Demasiados intentos. Intenta más tarde';
-    } else if (error.code === 'auth/invalid-credential') {
-      errorMessage = 'Credenciales inválidas. Verifica tu correo y contraseña';
+    // Si el error ya tiene un mensaje personalizado (como el de usuario no encontrado), usarlo
+    if (error.message && !error.code) {
+      throw error;
+    }
+
+    let errorMessage = 'Error al iniciar sesión. Por favor, intenta nuevamente.';
+    
+    // Manejo de errores de Firebase Auth (versiones actualizadas)
+    switch (error.code) {
+      case 'auth/user-not-found':
+        errorMessage = 'No existe una cuenta con este correo electrónico';
+        break;
+      case 'auth/wrong-password':
+        errorMessage = 'Contraseña incorrecta';
+        break;
+      case 'auth/invalid-email':
+        errorMessage = 'El formato del correo electrónico no es válido';
+        break;
+      case 'auth/user-disabled':
+        errorMessage = 'Esta cuenta ha sido deshabilitada. Contacta al administrador.';
+        break;
+      case 'auth/too-many-requests':
+        errorMessage = 'Demasiados intentos fallidos. Por favor, intenta más tarde o restablece tu contraseña.';
+        break;
+      case 'auth/invalid-credential':
+      case 'auth/invalid-login-credentials':
+        errorMessage = 'Correo o contraseña incorrectos. Por favor, verifica tus credenciales.';
+        break;
+      case 'auth/network-request-failed':
+        errorMessage = 'Error de conexión. Verifica tu conexión a internet.';
+        break;
+      case 'auth/operation-not-allowed':
+        errorMessage = 'El inicio de sesión con email/contraseña no está habilitado.';
+        break;
+      default:
+        if (error.message) {
+          errorMessage = error.message;
+        }
+        break;
     }
 
     throw new Error(errorMessage);
@@ -2628,6 +2709,231 @@ export async function enviarCorreoExpositorAceptado(
     console.log('✅ Correo de expositor aceptado enviado');
   } catch (error) {
     console.error('❌ Error al enviar correo:', error);
+    throw error;
+  }
+}
+
+/**
+ * Crea una invitación de expositor y envía el correo
+ */
+export async function crearInvitacionExpositor(
+  empresaId: string,
+  expositorId: string,
+  datosInvitado: {
+    nombre: string;
+    apellidos: string;
+    email: string;
+    telefono: string;
+    puesto: string;
+    empresa: string;
+    nombreExpositor: string;
+  },
+  invitadoIdExistente?: string
+): Promise<string> {
+  try {
+    const fechaActual = new Date().toISOString();
+    const landingUrl = import.meta.env.VITE_LANDING_URL || 'convencion-baja.scaleflow.tech';
+
+    // Crear o actualizar el documento del invitado en contactos
+    const invitadoData = {
+      nombre: datosInvitado.nombre,
+      apellidos: datosInvitado.apellidos || '',
+      email: datosInvitado.email,
+      telefono: datosInvitado.telefono,
+      empresa: datosInvitado.empresa,
+      puesto: datosInvitado.puesto,
+      tipoContacto: 'colaborador',
+      invitadoPor: expositorId,
+      fechaInvitacion: fechaActual,
+      registroCompleto: false,
+      esInvitadoExpositor: true,
+      fechaActualizacion: fechaActual,
+      historial: [
+        {
+          tipo: 'invitacion_creada',
+          fecha: fechaActual,
+          descripcion: `Invitado por ${datosInvitado.nombreExpositor}`,
+        }
+      ]
+    };
+
+    let invitadoId: string;
+
+    if (invitadoIdExistente) {
+      // Actualizar invitado existente
+      const invitadoRef = doc(db, `empresas/${empresaId}/contactos/${invitadoIdExistente}`);
+      await updateDoc(invitadoRef, {
+        ...invitadoData,
+        fechaReenvio: fechaActual,
+      });
+      invitadoId = invitadoIdExistente;
+    } else {
+      // Crear nuevo invitado
+      const contactosRef = collection(db, `empresas/${empresaId}/contactos`);
+      const docRef = await addDoc(contactosRef, invitadoData);
+      invitadoId = docRef.id;
+    }
+
+    // Enviar correo de invitación
+    const registroUrl = `${landingUrl}/registro?invitado=${invitadoId}`;
+    await enviarCorreoInvitacionColaborador(
+      datosInvitado.email,
+      datosInvitado.nombre,
+      datosInvitado.empresa,
+      datosInvitado.nombreExpositor,
+      registroUrl
+    );
+
+    console.log('✅ Invitación creada y correo enviado');
+    return invitadoId;
+  } catch (error) {
+    console.error('❌ Error al crear invitación:', error);
+    throw error;
+  }
+}
+
+/**
+ * Obtiene la lista de invitados de un expositor
+ */
+export async function obtenerInvitadosExpositor(
+  empresaId: string,
+  expositorId: string
+): Promise<any[]> {
+  try {
+    const contactosRef = collection(db, `empresas/${empresaId}/contactos`);
+    const q = query(
+      contactosRef,
+      where('invitadoPor', '==', expositorId),
+      where('esInvitadoExpositor', '==', true)
+    );
+    
+    const snapshot = await getDocs(q);
+    const invitados = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    return invitados;
+  } catch (error) {
+    console.error('❌ Error al obtener invitados:', error);
+    throw error;
+  }
+}
+
+/**
+ * Envía correo de invitación a colaborador de expositor
+ */
+async function enviarCorreoInvitacionColaborador(
+  email: string,
+  nombre: string,
+  empresa: string,
+  nombreExpositor: string,
+  registroUrl: string
+): Promise<void> {
+  try {
+    const emailAPIUrl = 'https://us-central1-advance-medical-68626.cloudfunctions.net/emailAPI/sendEmail';
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invitación a la Expo Empresarios de la Baja</title>
+  <style>
+    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f5f5f5;margin:0;padding:40px 20px}
+    .container{max-width:600px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+    .header{background-color:#2a2a30;padding:40px 30px;text-align:center;border-bottom:3px solid #D4AF37}
+    .header img{max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto}
+    .header h1{color:#fff;font-size:28px;font-weight:700;margin:0;line-height:1.3}
+    .header .subtitle{color:#D4AF37;font-size:16px;margin-top:10px;font-weight:500}
+    .content{padding:40px 30px;background:#fff;color:#333}
+    .content p{font-size:16px;line-height:1.6;color:#666;margin-bottom:16px}
+    .content h3{color:#2a2a30;font-size:18px;margin:25px 0 12px;font-weight:600}
+    .button{display:inline-block;background-color:#D4AF37;color:#fff!important;text-decoration:none;padding:16px 40px;border-radius:50px;font-size:16px;font-weight:600;box-shadow:0 4px 15px rgba(212,175,55,0.3);margin:20px 0}
+    .info-box{background-color:#fef9f3;color:#333;border:2px solid #D4AF37;padding:20px;margin:25px 0;border-radius:12px;box-shadow:0 2px 8px rgba(212,175,55,0.15)}
+    .info-box h3{margin-top:0;color:#B8941F}
+    .info-box strong{color:#B8941F}
+    .footer{background-color:#2a2a30;color:#cccccc;padding:30px;text-align:center;border-top:3px solid #D4AF37}
+    .footer p{margin:8px 0;font-size:14px;color:#cccccc;line-height:1.5}
+    .footer strong{color:#D4AF37}
+    .footer a{color:#D4AF37;text-decoration:none}
+    @media only screen and (max-width:600px){
+      body{padding:20px 10px}
+      .header{padding:30px 20px}
+      .header h1{font-size:22px}
+      .content{padding:30px 20px}
+      .button{padding:14px 30px;font-size:15px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header" style="background-color:#2a2a30;padding:40px 30px;text-align:center;border-bottom:3px solid #D4AF37">
+      <img src="https://firebasestorage.googleapis.com/v0/b/advance-medical-68626.firebasestorage.app/o/pre-configuraciones%2Fbranding-temp%2Ficono-1759185951906-kez3tj-logo.png?alt=media&token=259c0cad-5cac-4ae5-9f3d-cc6438eb8ec2" alt="Expo Empresarios de la Baja" style="max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto" />
+      <h1 style="color:#fff !important;font-size:28px;font-weight:700;margin:0;line-height:1.3">¡Estás Invitado! 🎉</h1>
+      <div class="subtitle" style="color:#D4AF37 !important;font-size:16px;margin-top:10px;font-weight:500">12ª Expo Empresarios de la Baja</div>
+    </div>
+    <div class="content" style="padding:40px 30px;background:#fff;color:#333">
+      <p style="font-size:16px;line-height:1.6;color:#666 !important;margin-bottom:16px">Hola <strong style="color:#333 !important">${nombre}</strong>,</p>
+      
+      <p style="font-size:16px;line-height:1.6;color:#666 !important;margin-bottom:16px"><strong style="color:#333 !important">${nombreExpositor}</strong> de <strong style="color:#333 !important">${empresa}</strong> te ha invitado a participar en la <strong style="color:#333 !important">12ª Expo Empresarios de la Baja</strong>.</p>
+      
+      <div style="background-color: #e8f5e9 !important; color: #333 !important; border: 2px solid #4CAF50; padding: 20px; margin: 25px 0; border-radius: 12px; box-shadow: 0 2px 8px rgba(76, 175, 80, 0.15);">
+        <h3 style="margin-top: 0; color: #2E7D32 !important; font-size:18px; font-weight:600">🎯 Completa tu registro</h3>
+        <p style="margin:8px 0; color: #333 !important; font-size:16px; line-height:1.6">Crea tu cuenta para acceder a todas las funciones de la expo:</p>
+        <ul style="padding-left:20px;color:#333 !important;line-height:1.8;margin:10px 0;list-style-type:disc">
+          <li style="color: #333 !important; font-size:15px">Agenda reuniones con expositores</li>
+          <li style="color: #333 !important; font-size:15px">Guarda tus contactos de interés</li>
+          <li style="color: #333 !important; font-size:15px">Accede al directorio completo</li>
+          <li style="color: #333 !important; font-size:15px">Configura tu disponibilidad</li>
+        </ul>
+        
+        <div style="text-align:center;margin:25px 0">
+          <a href="${registroUrl}" style="display: inline-block; background-color: #D4AF37 !important; color: #ffffff !important; text-decoration: none; padding: 16px 40px; border-radius: 50px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);">Completar Mi Registro</a>
+        </div>
+      </div>
+      
+      <div style="background-color: #fef9f3 !important; color: #333 !important; border: 2px solid #D4AF37; padding: 20px; margin: 25px 0; border-radius: 12px; box-shadow: 0 2px 8px rgba(212, 175, 55, 0.15);">
+        <h3 style="margin-top: 0; color: #B8941F !important; font-size:18px; font-weight:600">📋 Detalles del Evento</h3>
+        <p style="margin:8px 0; color: #333 !important;"><strong style="color: #B8941F !important;">📅 Fecha:</strong> Viernes 21 de noviembre 2025</p>
+        <p style="margin:8px 0; color: #333 !important;"><strong style="color: #B8941F !important;">📍 Lugar:</strong> Hotel Krystal Grand Los Cabos</p>
+        <p style="margin:8px 0; color: #333 !important;"><strong style="color: #B8941F !important;">🎯 Asistentes:</strong> Más de 600 ejecutivos</p>
+        <p style="margin:8px 0; color: #333 !important;"><strong style="color: #B8941F !important;">🏢 Empresa:</strong> ${empresa}</p>
+      </div>
+      
+      <p style="font-size:16px;line-height:1.6;color:#666 !important;margin-bottom:16px"><strong style="color:#333 !important">⚠️ Importante:</strong> Este enlace es único y personal. Completa tu registro para confirmar tu asistencia.</p>
+      
+      <p style="color:#999 !important;font-size:13px;margin-top:25px;line-height:1.6">Si el botón no funciona, copia y pega este enlace en tu navegador:<br><a href="${registroUrl}" style="color:#D4AF37 !important;text-decoration:underline;word-break:break-all">${registroUrl}</a></p>
+    </div>
+    <div class="footer" style="background-color:#2a2a30;padding:30px;text-align:center;border-top:3px solid #D4AF37">
+      <p style="margin:8px 0;font-size:14px;color:#cccccc !important;line-height:1.5"><strong style="color:#D4AF37 !important">12ª Expo Empresarios de la Baja</strong></p>
+      <p style="margin:8px 0;font-size:14px;color:#cccccc !important;line-height:1.5">Viernes 21 de Noviembre, 2025</p>
+      <p style="margin:8px 0;font-size:14px;color:#cccccc !important;line-height:1.5">📍 Hotel Krystal Grand Los Cabos</p>
+      <div style="margin:20px 0;height:1px;background:#555"></div>
+      <p style="margin:8px 0;font-size:14px;color:#cccccc !important;line-height:1.5">📧 <a href="mailto:info@expo-empresarios.com" style="color:#D4AF37 !important;text-decoration:none">info@expo-empresarios.com</a></p>
+      <p style="margin-top:20px;font-size:12px;color:#999 !important">Este es un correo automático. No respondas directamente a este mensaje.</p>
+      <p style="margin-top:15px;font-size:11px;color:#888 !important">© 2025 Expo Empresarios de la Baja. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    await fetch(emailAPIUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: email,
+        subject: '🎉 Invitación a la Expo Empresarios de la Baja - Completa tu Registro',
+        html: htmlContent,
+        from: 'Expo Empresarios de la Baja <cloud.send.email@gmail.com>',
+      }),
+    });
+
+    console.log('✅ Correo de invitación enviado');
+  } catch (error) {
+    console.error('❌ Error al enviar correo de invitación:', error);
     throw error;
   }
 }

@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getUserProfile } from '@/lib/firebase';
 import { EMPRESA_ID } from '@/config/constants';
+import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { 
   Loader2, 
   Search, 
@@ -30,9 +30,7 @@ import * as XLSX from 'xlsx';
 export default function MisContactosPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  
-  const [loading, setLoading] = useState(true);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const { loading: authLoading, userProfile } = useAuthCheck();
   const [contactos, setContactos] = useState<any[]>([]);
   const [filteredContactos, setFilteredContactos] = useState<any[]>([]);
   const [selectedContactos, setSelectedContactos] = useState<Set<string>>(new Set());
@@ -43,37 +41,24 @@ export default function MisContactosPage() {
   const [filterInteres, setFilterInteres] = useState<string>('todos');
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (userProfile) {
+      loadContactos();
+    }
+  }, [userProfile]);
 
   useEffect(() => {
     applyFilters();
   }, [contactos, searchTerm, filterTipo, filterInteres]);
 
-  const loadData = async () => {
+  const loadContactos = async () => {
+    if (!userProfile) return;
+    
     try {
-      setLoading(true);
-      
-      // Obtener perfil del usuario actual
-      const profile = await getUserProfile(EMPRESA_ID);
-      
-      if (!profile) {
-        toast({
-          title: 'Error',
-          description: 'No se pudo cargar tu perfil. Por favor, inicia sesión.',
-          variant: 'destructive',
-        });
-        navigate('/login');
-        return;
-      }
-
-      setUserProfile(profile);
-
       // Cargar contactos del usuario
-      const userCollection = profile.tipo === 'expositor' ? 'expositores' : 'contactos';
+      const userCollection = userProfile.tipo === 'expositor' ? 'expositores' : 'contactos';
       const contactosRef = collection(
         db,
-        `empresas/${EMPRESA_ID}/${userCollection}/${profile.id}/contactos`
+        `empresas/${EMPRESA_ID}/${userCollection}/${userProfile.id}/contactos`
       );
       
       const snapshot = await getDocs(contactosRef);
@@ -90,8 +75,6 @@ export default function MisContactosPage() {
         description: 'No se pudieron cargar los contactos',
         variant: 'destructive',
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -202,14 +185,14 @@ export default function MisContactosPage() {
     });
   };
 
-  if (loading) {
+  if (authLoading || !userProfile) {
     return (
       <div className="min-h-screen bg-background text-foreground">
         <Navigation onRegisterClick={() => navigate('/registro')} />
         <div className="container mx-auto px-4 py-24 flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
-            <p className="text-foreground/60">Cargando contactos...</p>
+            <p className="text-foreground/60">Verificando autenticación...</p>
           </div>
         </div>
         <Footer />

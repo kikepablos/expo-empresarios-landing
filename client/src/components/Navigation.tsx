@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Menu, X, User, Calendar, Contact, UserCircle, LogOut } from 'lucide-react';
+import { Menu, X, User, Calendar, Contact, UserCircle, LogOut, Users } from 'lucide-react';
 import logoImage from '@assets/logo.png';
 import { useLocation } from 'wouter';
 import {
@@ -11,7 +11,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { onAuthChange, logoutExpositor, getCurrentUser } from '@/lib/firebase';
+import { onAuthChange, logoutExpositor, getCurrentUser, getUserProfile } from '@/lib/firebase';
+import { EMPRESA_ID } from '@/config/constants';
 import type { User as FirebaseUser } from 'firebase/auth';
 
 interface NavigationProps {
@@ -37,20 +38,77 @@ export default function Navigation({ onRegisterClick }: NavigationProps) {
   const [location, navigate] = useLocation();
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isExpositor, setIsExpositor] = useState(false);
 
-  // Escuchar cambios en autenticación
+  // Escuchar cambios en autenticación y cargar perfil
   useEffect(() => {
+    const loadUserData = async (currentUser: FirebaseUser | null) => {
+      if (currentUser) {
+        try {
+          const profile = await getUserProfile(EMPRESA_ID);
+          
+          // Si no se encuentra el perfil, cerrar sesión
+          if (!profile) {
+            console.error('❌ Usuario autenticado pero sin perfil en Firestore');
+            await handleLogout();
+            
+            // Mostrar alerta
+            const Swal = (await import('sweetalert2')).default;
+            await Swal.fire({
+              icon: 'error',
+              title: 'Cuenta no encontrada',
+              html: '<p>Tu cuenta no está registrada en el sistema.</p><p>Por favor, completa tu registro o contacta al administrador.</p>',
+              confirmButtonText: 'Aceptar',
+              confirmButtonColor: '#ef4444',
+              background: '#0b0b0b',
+              color: '#fff',
+            });
+            
+            navigate('/login');
+            setLoading(false);
+            return;
+          }
+          
+          setIsExpositor(profile?.tipo === 'expositor');
+        } catch (error) {
+          console.error('Error al cargar perfil:', error);
+          
+          // En caso de error, cerrar sesión por seguridad
+          await handleLogout();
+          
+          const Swal = (await import('sweetalert2')).default;
+          await Swal.fire({
+            icon: 'error',
+            title: 'Error al cargar perfil',
+            text: 'No se pudo cargar tu información. Por favor, inicia sesión nuevamente.',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#ef4444',
+            background: '#0b0b0b',
+            color: '#fff',
+          });
+          
+          navigate('/login');
+          setIsExpositor(false);
+        }
+      } else {
+        setIsExpositor(false);
+      }
+      setLoading(false);
+    };
+
     const unsubscribe = onAuthChange((currentUser) => {
       setUser(currentUser);
-      setLoading(false);
+      loadUserData(currentUser);
     });
 
     // Verificar si ya hay un usuario al cargar
     const currentUser = getCurrentUser();
     if (currentUser) {
       setUser(currentUser);
+      loadUserData(currentUser);
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
 
     return () => unsubscribe();
   }, []);
@@ -172,6 +230,12 @@ export default function Navigation({ onRegisterClick }: NavigationProps) {
                       <Contact className="mr-2 h-4 w-4" />
                       <span>Mis Contactos</span>
                     </DropdownMenuItem>
+                    {isExpositor && (
+                      <DropdownMenuItem onClick={() => navigate('/mis-invitados')}>
+                        <Users className="mr-2 h-4 w-4" />
+                        <span>Mis Invitados</span>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={() => navigate('/mis-citas')}>
                       <Calendar className="mr-2 h-4 w-4" />
                       <span>Mis Citas</span>
@@ -252,6 +316,19 @@ export default function Navigation({ onRegisterClick }: NavigationProps) {
                         <Contact className="mr-2 h-4 w-4" />
                         Mis Contactos
                       </Button>
+                      {isExpositor && (
+                        <Button
+                          onClick={() => {
+                            navigate('/mis-invitados');
+                            setIsMobileMenuOpen(false);
+                          }}
+                          variant="ghost"
+                          className="w-full justify-start"
+                        >
+                          <Users className="mr-2 h-4 w-4" />
+                          Mis Invitados
+                        </Button>
+                      )}
                       <Button
                         onClick={() => {
                           navigate('/mis-citas');

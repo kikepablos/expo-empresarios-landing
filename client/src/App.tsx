@@ -14,6 +14,7 @@ import ExpositorDetailPage from "@/pages/ExpositorDetailPage";
 import ProfilePage from "@/pages/ProfilePage";
 import InvitadoDetailPage from "@/pages/InvitadoDetailPage";
 import MisContactosPage from "@/pages/MisContactosPage";
+import MisInvitadosPage from "@/pages/MisInvitadosPage";
 import MisCitasPage from "@/pages/MisCitasPage";
 import NotFound from "@/pages/not-found";
 
@@ -31,6 +32,7 @@ function Router() {
       <Route path="/invitado/:id" component={InvitadoDetailPage} />
       <Route path="/mi-perfil" component={ProfilePage} />
       <Route path="/mis-contactos" component={MisContactosPage} />
+      <Route path="/mis-invitados" component={MisInvitadosPage} />
       <Route path="/mis-citas" component={MisCitasPage} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />

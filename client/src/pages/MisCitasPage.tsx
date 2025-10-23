@@ -5,8 +5,8 @@ import Footer from '@/components/Footer';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { getUserProfile } from '@/lib/firebase';
 import { EMPRESA_ID } from '@/config/constants';
+import { useAuthCheck } from '@/hooks/useAuthCheck';
 import { 
   Loader2, 
   Calendar as CalendarIcon, 
@@ -59,9 +59,7 @@ interface Cita {
 export default function MisCitasPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  
-  const [loading, setLoading] = useState(true);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const { loading: authLoading, userProfile } = useAuthCheck();
   const [citas, setCitas] = useState<Cita[]>([]);
   const [citaSeleccionada, setCitaSeleccionada] = useState<Cita | null>(null);
   const [showRechazarModal, setShowRechazarModal] = useState(false);
@@ -69,33 +67,20 @@ export default function MisCitasPage() {
   const [procesando, setProcesando] = useState(false);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (userProfile) {
+      loadCitas();
+    }
+  }, [userProfile]);
 
-  const loadData = async () => {
+  const loadCitas = async () => {
+    if (!userProfile) return;
+    
     try {
-      setLoading(true);
-      
-      // Obtener perfil del usuario actual
-      const profile = await getUserProfile(EMPRESA_ID);
-      
-      if (!profile) {
-        toast({
-          title: 'Error',
-          description: 'No se pudo cargar tu perfil. Por favor, inicia sesión.',
-          variant: 'destructive',
-        });
-        navigate('/login');
-        return;
-      }
-
-      setUserProfile(profile);
-
       // Cargar citas del usuario
-      const userCollection = profile.tipo === 'expositor' ? 'expositores' : 'contactos';
+      const userCollection = userProfile.tipo === 'expositor' ? 'expositores' : 'contactos';
       const citasRef = collection(
         db,
-        `empresas/${EMPRESA_ID}/${userCollection}/${profile.id}/citas`
+        `empresas/${EMPRESA_ID}/${userCollection}/${userProfile.id}/citas`
       );
       
       const snapshot = await getDocs(citasRef);
@@ -119,10 +104,10 @@ export default function MisCitasPage() {
         description: 'No se pudieron cargar las citas',
         variant: 'destructive',
       });
-    } finally {
-      setLoading(false);
     }
   };
+
+  const loadData = loadCitas;
 
   const handleAceptarCita = async (cita: any) => {
     setProcesando(true);
@@ -159,7 +144,33 @@ export default function MisCitasPage() {
   };
 
   const handleReagendarClick = (cita: any) => {
-    setCitaSeleccionada(cita);
+    // Horario por defecto: Lunes a Viernes de 9 AM a 1 PM
+    const horarioPorDefecto = {
+      lunes: { enabled: true, inicio: "09:00", fin: "13:00" },
+      martes: { enabled: true, inicio: "09:00", fin: "13:00" },
+      miercoles: { enabled: true, inicio: "09:00", fin: "13:00" },
+      jueves: { enabled: true, inicio: "09:00", fin: "13:00" },
+      viernes: { enabled: true, inicio: "09:00", fin: "13:00" },
+      sabado: { enabled: false, inicio: "09:00", fin: "18:00" },
+      domingo: { enabled: false, inicio: "09:00", fin: "18:00" },
+    };
+
+    // Verificar si conQuien tiene horario configurado
+    const horarioDisponibilidad = cita.conQuien?.horarioDisponibilidad && 
+      Object.values(cita.conQuien.horarioDisponibilidad).some((day: any) => day.enabled)
+      ? cita.conQuien.horarioDisponibilidad
+      : horarioPorDefecto;
+
+    // Crear cita con horario garantizado
+    const citaConHorario = {
+      ...cita,
+      conQuien: {
+        ...cita.conQuien,
+        horarioDisponibilidad: horarioDisponibilidad
+      }
+    };
+
+    setCitaSeleccionada(citaConHorario);
     setShowReagendarModal(true);
   };
 
@@ -187,14 +198,14 @@ export default function MisCitasPage() {
     });
   };
 
-  if (loading) {
+  if (authLoading || !userProfile) {
     return (
       <div className="min-h-screen bg-background text-foreground">
         <Navigation onRegisterClick={() => navigate('/registro')} />
         <div className="container mx-auto px-4 py-24 flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
-            <p className="text-foreground/60">Cargando citas...</p>
+            <p className="text-foreground/60">Verificando autenticación...</p>
           </div>
         </div>
         <Footer />

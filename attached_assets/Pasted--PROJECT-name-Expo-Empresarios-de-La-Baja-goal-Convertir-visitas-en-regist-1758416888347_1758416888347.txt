@@ -166,7 +166,7 @@
       "El ganador debe estar presente o designar representante del hotel"
     ],
     "disclaimer": "Imágenes ilustrativas. Premios sujetos a disponibilidad de patrocinadores. Aplican términos.",
-    "cta": { "text": "Registrarme para la rifa", "action": "open_registration_modal" }
+    "cta": { "text": "Pre-Registro para la Expo", "action": "open_registration_modal" }
   },
 
   "GALLERY": {

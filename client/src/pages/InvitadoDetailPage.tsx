@@ -6,9 +6,10 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getInvitadoData, getCurrentUser, verificarContactoExistente, onAuthChange } from '@/lib/firebase';
 import { EMPRESA_ID } from '@/config/constants';
-import { Loader2, Mail, Phone, Building2, Briefcase, UserPlus, Calendar, MapPin, Clock } from 'lucide-react';
+import { Loader2, Mail, Phone, Building2, Briefcase, UserPlus, Calendar, MapPin, Clock, LogIn } from 'lucide-react';
 import RegistrarContactoModal from '@/components/invitado/RegistrarContactoModal';
 import AgendarReunionModal from '@/components/invitado/AgendarReunionModal';
+import LoginModal from '@/components/auth/LoginModal';
 
 export default function InvitadoDetailPage() {
   const [, navigate] = useLocation();
@@ -19,6 +20,7 @@ export default function InvitadoDetailPage() {
   const [loading, setLoading] = useState(true);
   const [showContactModal, setShowContactModal] = useState(false);
   const [showMeetingModal, setShowMeetingModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
@@ -136,12 +138,35 @@ export default function InvitadoDetailPage() {
     return null;
   }
 
-  const hasSchedule = invitado.horarioDisponibilidad && 
-    Object.values(invitado.horarioDisponibilidad).some((day: any) => day.enabled);
+  // Horario por defecto: Lunes a Viernes de 9 AM a 1 PM
+  const horarioPorDefecto = {
+    lunes: { enabled: true, inicio: "09:00", fin: "13:00" },
+    martes: { enabled: true, inicio: "09:00", fin: "13:00" },
+    miercoles: { enabled: true, inicio: "09:00", fin: "13:00" },
+    jueves: { enabled: true, inicio: "09:00", fin: "13:00" },
+    viernes: { enabled: true, inicio: "09:00", fin: "13:00" },
+    sabado: { enabled: false, inicio: "09:00", fin: "18:00" },
+    domingo: { enabled: false, inicio: "09:00", fin: "18:00" },
+  };
+
+  // Usar horario del invitado o el por defecto
+  const horarioDisponibilidad = invitado.horarioDisponibilidad && 
+    Object.values(invitado.horarioDisponibilidad).some((day: any) => day.enabled)
+    ? invitado.horarioDisponibilidad
+    : horarioPorDefecto;
+
+  // Siempre hay disponibilidad (real o por defecto)
+  const hasSchedule = true;
 
   // Validar si los botones deben estar habilitados
   const canInteract = currentUser && !isOwnProfile;
   const canRegisterContact = canInteract && !esContactoExistente;
+
+  // Crear versión del invitado con horario de disponibilidad garantizado
+  const invitadoConHorario = {
+    ...invitado,
+    horarioDisponibilidad: horarioDisponibilidad
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -154,10 +179,99 @@ export default function InvitadoDetailPage() {
             <h1 className="font-serif text-4xl font-bold text-foreground mb-2">
               {invitado.nombre} {invitado.apellidos}
             </h1>
-            <div className="flex items-center gap-2 text-foreground/60">
+            <div className="flex items-center gap-2 text-foreground/70 text-sm">
               <Building2 className="w-4 h-4" />
               <span>{invitado.empresa || 'Empresa no especificada'}</span>
             </div>
+          </div>
+
+          {/* Widget de Acciones para Móvil - Solo visible en pantallas pequeñas */}
+          <div className="lg:hidden mb-6">
+            <Card className="bg-card border border-border p-6">
+              <h3 className="text-xl font-bold text-foreground mb-4">
+                Acciones
+              </h3>
+
+              {/* Botones en fila horizontal en móvil */}
+              <div className="flex flex-row gap-3">
+                {/* Botón Registrar Contacto */}
+                {esContactoExistente ? (
+                  <div className="flex-1 p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+                    <div className="flex items-center gap-2 text-green-600">
+                      <UserPlus className="w-5 h-5 flex-shrink-0" />
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-sm">Ya es tu contacto</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <Button
+                    onClick={() => setShowContactModal(true)}
+                    className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    size="lg"
+                    disabled={!canRegisterContact || verificandoContacto}
+                  >
+                    {verificandoContacto ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        <span>Verificar</span>
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-5 h-5 mr-2" />
+                        <span>Contacto</span>
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                {/* Botón Agendar Reunión */}
+                {hasSchedule && (
+                  <Button
+                    onClick={() => setShowMeetingModal(true)}
+                    className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    size="lg"
+                    disabled={!canInteract}
+                  >
+                    <Calendar className="w-5 h-5 mr-2" />
+                    <span>Agendar</span>
+                  </Button>
+                )}
+              </div>
+              
+              {/* Botón de Iniciar Sesión */}
+              {!currentUser && !isOwnProfile && (
+                <div className="mt-4">
+                  <Button
+                    onClick={() => setShowLoginModal(true)}
+                    className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-black font-semibold"
+                    size="lg"
+                  >
+                    <LogIn className="w-5 h-5 mr-2" />
+                    Iniciar Sesión
+                  </Button>
+                  <p className="text-sm text-foreground/60 mt-2 text-center">
+                    Inicia sesión para registrar contactos y agendar reuniones.
+                  </p>
+                </div>
+              )}
+
+              {/* Mensaje si es perfil propio */}
+              {isOwnProfile && (
+                <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                  <p className="text-sm text-foreground/70 mb-3">
+                    ℹ️ Este es tu perfil.
+                  </p>
+                  <Button
+                    onClick={() => navigate('/mi-perfil')}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Ir a Mi Perfil
+                  </Button>
+                </div>
+              )}
+            </Card>
           </div>
 
           <div className="grid lg:grid-cols-[2fr_1fr] gap-8">
@@ -243,7 +357,7 @@ export default function InvitadoDetailPage() {
                   </h2>
 
                   <div className="space-y-3">
-                    {Object.entries(invitado.horarioDisponibilidad || {}).map(([dia, horario]: [string, any]) => {
+                    {Object.entries(horarioDisponibilidad).map(([dia, horario]: [string, any]) => {
                       if (!horario.enabled) return null;
 
                       const diasMap: Record<string, string> = {
@@ -317,65 +431,60 @@ export default function InvitadoDetailPage() {
               )}
             </div>
 
-            {/* Sidebar de Acciones */}
-            <aside className="space-y-6">
+            {/* Sidebar de Acciones - Solo visible en desktop */}
+            <aside className="hidden lg:block space-y-6">
               <Card className="bg-card border border-border p-6 sticky top-24">
                 <h3 className="text-xl font-bold text-foreground mb-6">
                   Acciones
                 </h3>
 
-                <div className="space-y-4">
+                {/* Botones en columna en desktop */}
+                <div className="flex flex-col gap-3">
                   {/* Botón Registrar Contacto */}
                   {esContactoExistente ? (
-                    <div className="w-full p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+                    <div className="flex-1 p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
                       <div className="flex items-center gap-2 text-green-600">
-                        <UserPlus className="w-5 h-5" />
-                        <span className="font-semibold">Ya es tu contacto</span>
+                        <UserPlus className="w-5 h-5 flex-shrink-0" />
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-sm">Ya es tu contacto</span>
+                          <span className="text-xs text-foreground/70">
+                            Este usuario ya está en tu lista de contactos
+                          </span>
+                        </div>
                       </div>
-                      <p className="text-sm text-foreground/70 mt-1">
-                        Este usuario ya está en tu lista de contactos
-                      </p>
                     </div>
                   ) : (
                     <Button
                       onClick={() => setShowContactModal(true)}
-                      className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                       size="lg"
                       disabled={!canRegisterContact || verificandoContacto}
                     >
                       {verificandoContacto ? (
                         <>
                           <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                          Verificando...
+                          <span>Verificando...</span>
                         </>
                       ) : (
                         <>
                           <UserPlus className="w-5 h-5 mr-2" />
-                          Registrar Contacto
+                          <span>Registrar Contacto</span>
                         </>
                       )}
                     </Button>
                   )}
 
                   {/* Botón Agendar Reunión */}
-                  {hasSchedule ? (
+                  {hasSchedule && (
                     <Button
                       onClick={() => setShowMeetingModal(true)}
-                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                       size="lg"
                       disabled={!canInteract}
                     >
                       <Calendar className="w-5 h-5 mr-2" />
-                      Agendar Reunión
+                      <span>Agendar Reunión</span>
                     </Button>
-                  ) : (
-                    <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
-                      <p className="text-sm text-foreground/70">
-                        {isOwnProfile 
-                          ? 'Configura tu disponibilidad desde tu perfil para que otros puedan agendar reuniones contigo.'
-                          : 'Este invitado aún no ha configurado su disponibilidad para reuniones.'}
-                      </p>
-                    </div>
                   )}
                 </div>
 
@@ -395,20 +504,23 @@ export default function InvitadoDetailPage() {
                   </div>
                 )}
 
+                {/* Botón de Iniciar Sesión */}
                 {!currentUser && !isOwnProfile && (
-                  <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                    <p className="text-sm text-foreground/70 mb-3">
-                      Inicia sesión para registrar contactos y agendar reuniones.
-                    </p>
+                  <div className="mt-6">
                     <Button
-                      onClick={() => navigate('/login')}
-                      variant="outline"
-                      className="w-full"
+                      onClick={() => setShowLoginModal(true)}
+                      className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-black font-semibold"
+                      size="lg"
                     >
+                      <LogIn className="w-5 h-5 mr-2" />
                       Iniciar Sesión
                     </Button>
+                    <p className="text-sm text-foreground/60 mt-3 text-center">
+                      Inicia sesión para registrar contactos y agendar reuniones.
+                    </p>
                   </div>
                 )}
+
               </Card>
             </aside>
           </div>
@@ -421,7 +533,7 @@ export default function InvitadoDetailPage() {
       <RegistrarContactoModal
         open={showContactModal}
         onClose={() => setShowContactModal(false)}
-        invitado={invitado}
+        invitado={invitadoConHorario}
         currentUser={currentUser}
         currentUserProfile={currentUserProfile}
         onSuccess={() => {
@@ -433,9 +545,18 @@ export default function InvitadoDetailPage() {
       <AgendarReunionModal
         open={showMeetingModal}
         onClose={() => setShowMeetingModal(false)}
-        invitado={invitado}
+        invitado={invitadoConHorario}
         currentUser={currentUser}
         currentUserProfile={currentUserProfile}
+      />
+
+      <LoginModal
+        open={showLoginModal}
+        onOpenChange={setShowLoginModal}
+        onLoginSuccess={() => {
+          // El usuario ya está autenticado, la página se actualizará automáticamente
+          // gracias al onAuthChange en el useEffect
+        }}
       />
     </div>
   );

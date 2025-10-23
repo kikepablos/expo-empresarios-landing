@@ -74,7 +74,7 @@ export const APP_CONFIG = {
   appName: 'Expo Empresarios de la Baja',
   urls: {
     dashboard: 'https://emdb-dashboard.web.app',
-    landing: 'https://expo-empresarios-de-la-baja.web.app',
+    landing: 'convencion-baja.scaleflow.tech',
   }
 };
 ```

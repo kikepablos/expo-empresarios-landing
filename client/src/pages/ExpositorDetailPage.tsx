@@ -6,7 +6,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getExpositorData, getCurrentUser } from '@/lib/firebase';
 import { EMPRESA_ID } from '@/config/constants';
-import { MapPin, Globe, Phone, Mail, Calendar, ArrowLeft, Loader2 } from 'lucide-react';
+import { MapPin, Globe, Phone, Mail, Calendar, ArrowLeft, Loader2, LogIn } from 'lucide-react';
+import LoginModal from '@/components/auth/LoginModal';
 
 export default function ExpositorDetailPage() {
   const [, navigate] = useLocation();
@@ -17,6 +18,7 @@ export default function ExpositorDetailPage() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     // Verificar usuario loggeado
@@ -206,11 +208,12 @@ export default function ExpositorDetailPage() {
                       <strong>Inicia sesión</strong> para agendar una cita con este expositor
                     </p>
                     <Button
-                      onClick={() => navigate('/login')}
+                      onClick={() => setShowLoginModal(true)}
                       variant="outline"
                       className="mt-2"
                       size="sm"
                     >
+                      <LogIn className="w-4 h-4 mr-2" />
                       Iniciar Sesión
                     </Button>
                   </div>
@@ -309,6 +312,17 @@ export default function ExpositorDetailPage() {
       </main>
 
       <Footer />
+
+      {/* Modal de Login */}
+      <LoginModal
+        open={showLoginModal}
+        onOpenChange={setShowLoginModal}
+        onLoginSuccess={() => {
+          // El componente se actualizará automáticamente cuando cambie el estado de autenticación
+          const currentUser = getCurrentUser();
+          setUser(currentUser);
+        }}
+      />
     </div>
   );
 }

@@ -1,35 +1,120 @@
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect, useRef } from 'react';
 import { useLocation } from 'wouter';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { loginExpositor } from '@/lib/firebase';
-import { LogIn, Loader2, Eye, EyeOff } from 'lucide-react';
+import { LogIn, Loader2, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import { useToast } from '@/hooks/use-toast';
+import { EMPRESA_ID } from '@/config/constants';
 
 export default function LoginPage() {
   const [, navigate] = useLocation();
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Limpiar timeout al desmontar
+  useEffect(() => {
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Scroll al inicio cuando se carga la página
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    // Validaciones básicas antes de enviar
+    if (!email.trim()) {
+      setError('Por favor, ingresa tu correo electrónico');
+      toast({
+        title: 'Campo requerido',
+        description: 'Por favor, ingresa tu correo electrónico',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (!password) {
+      setError('Por favor, ingresa tu contraseña');
+      toast({
+        title: 'Campo requerido',
+        description: 'Por favor, ingresa tu contraseña',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
 
+    // Safety timeout: Si después de 15 segundos no hay respuesta, forzar el fin del loading
+    loadingTimeoutRef.current = setTimeout(() => {
+      console.warn('⚠️ Timeout de login alcanzado');
+      setLoading(false);
+      setError('La petición tardó demasiado. Por favor, verifica tu conexión e intenta nuevamente.');
+      toast({
+        title: 'Tiempo de espera agotado',
+        description: 'La petición tardó demasiado. Intenta nuevamente.',
+        variant: 'destructive',
+      });
+    }, 15000);
+
     try {
-      await loginExpositor(email, password);
+      console.log('Intentando iniciar sesión...');
+      const result = await loginExpositor(email, password, EMPRESA_ID);
+      console.log('Login exitoso:', result);
       
-      navigate('/');
+      // Limpiar timeout si el login fue exitoso
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
+
+      // Mostrar mensaje de éxito
+      toast({
+        title: '¡Bienvenido!',
+        description: 'Has iniciado sesión correctamente',
+      });
+      
+      // Redirigir después de un breve delay
+      setTimeout(() => {
+        navigate('/');
+      }, 500);
+      
     } catch (err: any) {
-      console.error('Error al iniciar sesión:', err);
-      setError(err.message || 'Error al iniciar sesión');
+      console.error('Error en handleSubmit:', err);
+      
+      // Limpiar timeout si hubo error
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+      }
+      
+      // Asegurarse de que siempre se muestre un mensaje de error
+      const errorMessage = err?.message || 'Error desconocido al iniciar sesión. Por favor, intenta nuevamente.';
+      setError(errorMessage);
+      
+      // También mostrar toast con el error
+      toast({
+        title: 'Error al iniciar sesión',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     } finally {
+      // Asegurarse de que siempre se deshabilite el loading
       setLoading(false);
     }
   };
@@ -113,8 +198,15 @@ export default function LoginPage() {
 
             {/* Error */}
             {error && (
-              <div className="bg-red-950/50 border border-red-800 text-red-400 px-4 py-3 rounded-lg text-sm">
-                {error}
+              <div className="bg-red-950/50 border border-red-500 rounded-lg p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-red-400 text-sm font-medium">
+                      {error}
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 

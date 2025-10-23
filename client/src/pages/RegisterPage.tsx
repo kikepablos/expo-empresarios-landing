@@ -152,6 +152,7 @@ export default function RegisterPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [invitadoData, setInvitadoData] = useState<InvitadoData | null>(null);
   const [esAcompanante, setEsAcompanante] = useState(false);
+  const [esInvitadoExpositor, setEsInvitadoExpositor] = useState(false);
 
   // Cargar datos del invitado al montar el componente
   useEffect(() => {
@@ -169,6 +170,8 @@ export default function RegisterPage() {
           setInvitadoData(data);
           // Verificar si es acompañante
           setEsAcompanante(data.esAcompanante === true);
+          // Verificar si es invitado de expositor
+          setEsInvitadoExpositor(data.esInvitadoExpositor === true);
           
           // Prellenar el formulario con los datos existentes
           setFormData((prev) => ({
@@ -228,7 +231,7 @@ export default function RegisterPage() {
       return true; // Solo necesita campos básicos
     }
 
-    // FLUJO CON INVITACIÓN: Validar contraseña + invitado + disponibilidad
+    // FLUJO CON INVITACIÓN: Validar contraseña
     // Validar contraseña principal
     if (!formData.password || formData.password.length < 6) {
       return false;
@@ -237,7 +240,12 @@ export default function RegisterPage() {
       return false;
     }
 
-    // Validar datos de acompañante si existe
+    // Si es invitado de expositor, solo necesita contraseña y campos básicos
+    if (esInvitadoExpositor) {
+      return true;
+    }
+
+    // Validar datos de acompañante si existe (solo para invitados normales)
     if (formData.guestType === 'colaborador') {
       const guestValid = Boolean(
         formData.guestFirstName &&
@@ -261,7 +269,7 @@ export default function RegisterPage() {
     }
 
     return true;
-  }, [formData, esAcompanante, invitadoId]);
+  }, [formData, esAcompanante, esInvitadoExpositor, invitadoId]);
 
   const handleDayToggle = (diaId: string, enabled: boolean) => {
     setSchedule(prev => ({
@@ -817,8 +825,28 @@ export default function RegisterPage() {
                   </div>
                 )}
 
-                {/* Solo mostrar opción de invitar si NO es acompañante Y tiene invitación */}
-                {invitadoId && !esAcompanante && (
+                {/* Mensaje informativo para invitados de expositor */}
+                {esInvitadoExpositor && (
+                  <div className="border border-primary/50 rounded-xl p-6 bg-primary/10">
+                    <div className="flex items-start gap-3">
+                      <div className="text-2xl">🏢</div>
+                      <div className="flex-1">
+                        <h3 className="font-serif text-lg text-primary mb-2">
+                          Invitación de Expositor
+                        </h3>
+                        <p className="text-sm text-foreground/80 mb-2">
+                          Has sido invitado por <strong>{invitadoData?.empresa || 'un expositor'}</strong> para participar en la <strong>12ª Expo Empresarios de la Baja</strong>.
+                        </p>
+                        <p className="text-sm text-foreground/70">
+                          Completa tu registro para acceder a todas las funcionalidades de la plataforma.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Solo mostrar opción de invitar si NO es acompañante Y NO es invitado de expositor Y tiene invitación */}
+                {invitadoId && !esAcompanante && !esInvitadoExpositor && (
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label>Tipo de invitado *</Label>
@@ -944,6 +972,9 @@ export default function RegisterPage() {
                     </div>
                   <p className="text-sm text-foreground/70">
                     Indica los días y horarios en los que estarás disponible para agendar reuniones después del evento.
+                  </p>
+                   <p className="text-sm text-foreground/70">
+                    Si no los defines, el sistema utilizara los horarios de Lunes a Viernes de 9:00 a 13:00 horas.
                   </p>
                   
                   <div className="space-y-3">
