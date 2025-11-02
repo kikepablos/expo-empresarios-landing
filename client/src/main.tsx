@@ -2,8 +2,18 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
+// const TARGET_HOST = "convencion-baja.scaleflow.tech";
+
+// if (typeof window !== "undefined" && import.meta.env.PROD) {
+//   const { hostname } = window.location;
+
+//   if (hostname !== TARGET_HOST) {
+//     window.location.replace(`https://${TARGET_HOST}`);
+//   }
+// }
+
 // Version de la aplicación - incrementar cuando haya cambios importantes
-const APP_VERSION = "1.0.5";
+const APP_VERSION = "1.0.";
 
 // Limpiar caché si la versión cambió
 function clearCacheIfNeeded() {
