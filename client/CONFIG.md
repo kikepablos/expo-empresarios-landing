@@ -54,7 +54,7 @@ Al iniciar la app en modo desarrollo, verás en la consola:
 ```
 🔧 Configuración de la App
   Empresa ID: LssrkZFF7CbwxbPnNYRD
-  Firebase Project: advance-medical-68626
+  Firebase Project: scaleflow-aee7f (Firestore DB: suite)
   Environment: development
 ```
 

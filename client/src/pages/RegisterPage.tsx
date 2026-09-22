@@ -320,6 +320,19 @@ export default function RegisterPage() {
 
         // Si hay invitadoId, actualizar en Firestore
         if (invitadoId) {
+          // Crear cuenta de usuario ANTES de escribir en Firestore: las reglas de
+          // Suite exigen sesión para actualizar `contactos`, y createUserAccount
+          // deja al usuario autenticado.
+          try {
+            await createUserAccount(formData.email, formData.password, empresaId, invitadoId);
+            console.log('Cuenta de usuario creada exitosamente para:', formData.email);
+          } catch (accountError: any) {
+            console.error('Error al crear cuenta de usuario:', accountError);
+            if (accountError.code === 'auth/email-already-in-use') {
+              console.log('El email ya tiene una cuenta, continuando...');
+            }
+          }
+
           // Actualizar datos del invitado (puede ser principal o acompañante)
           await updateInvitadoData(empresaId, invitadoId, {
             nombre: formData.firstName,
@@ -346,17 +359,6 @@ export default function RegisterPage() {
             codigoConfirmacion: codigoConfirmacion,
             horarioDisponibilidad: schedule,
           });
-
-          // Crear cuenta de usuario
-          try {
-            await createUserAccount(formData.email, formData.password, empresaId, invitadoId);
-            console.log('Cuenta de usuario creada exitosamente para:', formData.email);
-          } catch (accountError: any) {
-            console.error('Error al crear cuenta de usuario:', accountError);
-            if (accountError.code === 'auth/email-already-in-use') {
-              console.log('El email ya tiene una cuenta, continuando...');
-            }
-          }
 
           console.log('Datos actualizados en Firestore, enviando correo...');
           

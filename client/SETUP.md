@@ -19,12 +19,12 @@ cp .env.example .env
 
 ```env
 VITE_FIREBASE_API_KEY=tu_api_key
-VITE_FIREBASE_AUTH_DOMAIN=tu_proyecto.firebaseapp.com
+VITE_FIREBASE_AUTH_DOMAIN=scaleflow-aee7f.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=tu_proyecto_id
-VITE_FIREBASE_STORAGE_BUCKET=tu_proyecto.appspot.com
+VITE_FIREBASE_STORAGE_BUCKET=scaleflow-aee7f.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=tu_sender_id
 VITE_FIREBASE_APP_ID=tu_app_id
-VITE_EMPRESA_ID=advance-medical-68626
+VITE_EMPRESA_ID=sTQMprSt6gM7htOXKCKwWnr5n3A2
 ```
 
 ## Cómo funciona
@@ -159,7 +159,7 @@ Verifica las reglas de seguridad de Firestore.
 1. Verifica que el ID del invitado sea correcto
 2. Abre la consola del navegador para ver errores
 3. Verifica que el invitado exista en Firestore:
-   - Ruta: `empresas/advance-medical-68626/contactos/{invitadoId}`
+   - Ruta: `empresas/sTQMprSt6gM7htOXKCKwWnr5n3A2/contactos/{invitadoId}`
 
 ### El formulario no se envía
 

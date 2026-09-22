@@ -22,16 +22,26 @@ const getEmpresaId = (): string => {
   return 'sTQMprSt6gM7htOXKCKwWnr5n3A2';
 };
 
-// Firebase Configuration
+// Firebase Configuration (proyecto Scaleflow Suite)
 export const FIREBASE_CONFIG = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyB_ndugEn0SThWr9f4QJgPJ-UZ8_eCqU2Q",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "advance-medical-68626.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "advance-medical-68626",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "advance-medical-68626.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "6672437019",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:6672437019:web:2d65162482d78dbb914dbe",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-D208YMX1VQ",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "scaleflow-aee7f.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "scaleflow-aee7f",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "scaleflow-aee7f.appspot.com",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "55600950615",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:55600950615:web:44d91a0c3515443c80e212",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-E4CR4M73P8",
 };
+
+// Base de datos Firestore con nombre (no la "(default)") del proyecto Suite
+export const FIRESTORE_DATABASE_ID = import.meta.env.VITE_FIREBASE_DATABASE_ID || "suite";
+
+// Email API (Cloud Function del proyecto Suite)
+export const EMAIL_API_URL = import.meta.env.VITE_EMAIL_API_URL ||
+  'https://us-central1-scaleflow-aee7f.cloudfunctions.net/emailAPI/sendEmail';
+
+// Logo usado en los correos (servido desde client/public de esta landing)
+export const EMAIL_LOGO_URL = 'https://convencion-baja.scaleflow.tech/logo-expo.png';
 
 // App Configuration
 export const APP_CONFIG = {
@@ -43,7 +53,7 @@ export const APP_CONFIG = {
   
   // Función de Firebase para registro
   firebaseFunctionUrl: import.meta.env.VITE_FIREBASE_FUNCTION_URL || 
-    'https://us-central1-advance-medical-68626.cloudfunctions.net/register',
+    'https://us-central1-scaleflow-aee7f.cloudfunctions.net/register',
   
   // URLs
   urls: {

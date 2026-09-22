@@ -144,7 +144,7 @@ En modo desarrollo, abre la consola del navegador:
 ```
 🔧 Configuración de la App
 Empresa ID: sTQMprSt6gM7htOXKCKwWnr5n3A2
-Firebase Project: advance-medical-68626
+Firebase Project: scaleflow-aee7f (Firestore DB: suite)
 Environment: development
 ```
 

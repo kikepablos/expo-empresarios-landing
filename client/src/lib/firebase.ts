@@ -12,19 +12,11 @@ import {
   User
 } from 'firebase/auth';
 
-// Configuración de Firebase
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-};
+import { FIREBASE_CONFIG, FIRESTORE_DATABASE_ID, EMAIL_API_URL, EMAIL_LOGO_URL } from '@/config/constants';
 
-// Inicializar Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// Inicializar Firebase (proyecto Scaleflow Suite, base de datos "suite")
+const app = initializeApp(FIREBASE_CONFIG);
+const db = getFirestore(app, FIRESTORE_DATABASE_ID);
 const storage = getStorage(app);
 const auth = getAuth(app);
 
@@ -147,7 +139,7 @@ export async function enviarCorreoSolicitud(
 ) {
   try {
     console.log('Enviando correo de solicitud a:', email);
-    const emailAPIUrl = 'https://us-central1-advance-medical-68626.cloudfunctions.net/emailAPI/sendEmail';
+    const emailAPIUrl = EMAIL_API_URL;
 
     // Si hay invitadoId, es un correo para completar registro con contraseña
     const esInvitacionConRegistro = Boolean(invitadoId);
@@ -308,7 +300,7 @@ export async function enviarCorreoConfirmacion(
 ) {
   try {
     console.log('Enviando correo de confirmación a:', email);
-    const emailAPIUrl = 'https://us-central1-advance-medical-68626.cloudfunctions.net/emailAPI/sendEmail';
+    const emailAPIUrl = EMAIL_API_URL;
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -335,7 +327,7 @@ export async function enviarCorreoConfirmacion(
       <body>
         <div class="container">
           <div class="header" style="background-color: #2a2a30; padding: 40px 30px; text-align: center; border-bottom: 3px solid #D4AF37;">
-            <img src="https://firebasestorage.googleapis.com/v0/b/advance-medical-68626.firebasestorage.app/o/pre-configuraciones%2Fbranding-temp%2Ficono-1759185951906-kez3tj-logo.png?alt=media&token=259c0cad-5cac-4ae5-9f3d-cc6438eb8ec2" alt="Expo Empresarios de la Baja" style="max-width: 180px; height: auto; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;" />
+            <img src="${EMAIL_LOGO_URL}" alt="Expo Empresarios de la Baja" style="max-width: 180px; height: auto; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;" />
             <h1 style="margin: 0; font-size: 32px; font-weight: 700; color: #ffffff !important;">¡Registro Confirmado! 🎉</h1>
           </div>
           <div class="content">
@@ -563,7 +555,7 @@ export async function enviarCorreoInvitacionExpositor(
 ) {
   try {
     console.log('Enviando correo de invitación a expositor:', email);
-    const emailAPIUrl = 'https://us-central1-advance-medical-68626.cloudfunctions.net/emailAPI/sendEmail';
+    const emailAPIUrl = EMAIL_API_URL;
     const registroUrl = `convencion-baja.scaleflow.tech/registro-expositor?expositor=${expositorId}`;
 
     const htmlContent = `
@@ -751,8 +743,7 @@ export async function sendWelcomeEmail(
   try {
     console.log('📧 Enviando correo de bienvenida a:', email);
 
-    const emailAPIUrl = import.meta.env.VITE_EMAIL_API_URL ||
-      'https://us-central1-advance-medical-68626.cloudfunctions.net/emailAPI/sendEmail';
+    const emailAPIUrl = EMAIL_API_URL;
 
     const htmlContent = `
 <!DOCTYPE html>
@@ -793,7 +784,7 @@ export async function sendWelcomeEmail(
 <body>
   <div class="container">
     <div class="header" style="background-color:#2a2a30;padding:40px 30px;text-align:center;border-bottom:3px solid #D4AF37">
-      <img src="https://firebasestorage.googleapis.com/v0/b/advance-medical-68626.firebasestorage.app/o/pre-configuraciones%2Fbranding-temp%2Ficono-1759185951906-kez3tj-logo.png?alt=media&token=259c0cad-5cac-4ae5-9f3d-cc6438eb8ec2" alt="Expo Empresarios de la Baja" style="max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto" />
+      <img src="${EMAIL_LOGO_URL}" alt="Expo Empresarios de la Baja" style="max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto" />
       <h1 style="color:#fff !important;font-size:28px;font-weight:700;margin:0;line-height:1.3">¡Bienvenido a la Expo!</h1>
       <div class="subtitle" style="color:#D4AF37 !important;font-size:16px;margin-top:10px;font-weight:500">Tu cuenta ha sido creada exitosamente</div>
     </div>
@@ -1275,7 +1266,7 @@ async function enviarCorreoNotificacionContacto(
   registradorEmpresa: string
 ): Promise<void> {
   try {
-    const emailAPIUrl = 'https://us-central1-advance-medical-68626.cloudfunctions.net/emailAPI/sendEmail';
+    const emailAPIUrl = EMAIL_API_URL;
 
     const tipoLabel = registradorTipo === 'expositor' ? 'Expositor' : 'Asistente';
 
@@ -1315,7 +1306,7 @@ async function enviarCorreoNotificacionContacto(
 <body>
   <div class="container">
     <div class="header" style="background-color:#2a2a30;padding:40px 30px;text-align:center;border-bottom:3px solid #D4AF37">
-      <img src="https://firebasestorage.googleapis.com/v0/b/advance-medical-68626.firebasestorage.app/o/pre-configuraciones%2Fbranding-temp%2Ficono-1759185951906-kez3tj-logo.png?alt=media&token=259c0cad-5cac-4ae5-9f3d-cc6438eb8ec2" alt="Expo Empresarios de la Baja" style="max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto" />
+      <img src="${EMAIL_LOGO_URL}" alt="Expo Empresarios de la Baja" style="max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto" />
       <h1 style="color:#fff !important;font-size:28px;font-weight:700;margin:0;line-height:1.3">🤝 Nueva Conexión</h1>
       <div class="subtitle" style="color:#D4AF37 !important;font-size:16px;margin-top:10px;font-weight:500">¡Alguien te ha registrado como contacto!</div>
     </div>
@@ -1517,7 +1508,7 @@ async function enviarCorreoNotificacionCita(
   notas: string
 ): Promise<void> {
   try {
-    const emailAPIUrl = 'https://us-central1-advance-medical-68626.cloudfunctions.net/emailAPI/sendEmail';
+    const emailAPIUrl = EMAIL_API_URL;
 
     const tipoLabel = organizadorTipo === 'expositor' ? 'Expositor' : 'Asistente';
     const fechaFormateada = new Date(fecha + 'T00:00:00').toLocaleDateString('es-ES', {
@@ -1559,7 +1550,7 @@ async function enviarCorreoNotificacionCita(
 <body>
   <div class="container">
     <div class="header" style="background-color:#2a2a30;padding:40px 30px;text-align:center;border-bottom:3px solid #D4AF37">
-      <img src="https://firebasestorage.googleapis.com/v0/b/advance-medical-68626.firebasestorage.app/o/pre-configuraciones%2Fbranding-temp%2Ficono-1759185951906-kez3tj-logo.png?alt=media&token=259c0cad-5cac-4ae5-9f3d-cc6438eb8ec2" alt="Expo Empresarios de la Baja" style="max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto" />
+      <img src="${EMAIL_LOGO_URL}" alt="Expo Empresarios de la Baja" style="max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto" />
       <h1 style="color:#fff !important;font-size:28px;font-weight:700;margin:0;line-height:1.3">📅 Nueva Reunión Agendada</h1>
       <div class="subtitle" style="color:#D4AF37 !important;font-size:16px;margin-top:10px;font-weight:500">Tienes una nueva cita pendiente</div>
     </div>
@@ -1783,7 +1774,7 @@ export async function enviarCorreoSolicitudEnRevision(
   apellidos: string
 ): Promise<void> {
   try {
-    const emailAPIUrl = 'https://us-central1-advance-medical-68626.cloudfunctions.net/emailAPI/sendEmail';
+    const emailAPIUrl = EMAIL_API_URL;
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -1809,7 +1800,7 @@ export async function enviarCorreoSolicitudEnRevision(
       <body>
         <div class="container">
           <div class="header" style="background-color: #2a2a30; padding: 40px 30px; text-align: center; border-bottom: 3px solid #D4AF37;">
-            <img src="https://firebasestorage.googleapis.com/v0/b/advance-medical-68626.firebasestorage.app/o/pre-configuraciones%2Fbranding-temp%2Ficono-1759185951906-kez3tj-logo.png?alt=media&token=259c0cad-5cac-4ae5-9f3d-cc6438eb8ec2" alt="Expo Empresarios de la Baja" style="max-width: 180px; height: auto; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;" />
+            <img src="${EMAIL_LOGO_URL}" alt="Expo Empresarios de la Baja" style="max-width: 180px; height: auto; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;" />
             <h1 style="margin: 0; font-size: 32px; font-weight: 700; color: #ffffff !important;">⏳ Solicitud en Revisión</h1>
           </div>
           <div class="content">
@@ -2075,7 +2066,7 @@ async function enviarCorreoCitaAceptada(
   tema: string
 ): Promise<void> {
   try {
-    const emailAPIUrl = 'https://us-central1-advance-medical-68626.cloudfunctions.net/emailAPI/sendEmail';
+    const emailAPIUrl = EMAIL_API_URL;
     const fechaFormateada = new Date(fecha + 'T00:00:00').toLocaleDateString('es-ES', {
       weekday: 'long',
       year: 'numeric',
@@ -2113,7 +2104,7 @@ async function enviarCorreoCitaAceptada(
 <body>
   <div class="container">
     <div class="header" style="background-color:#2a2a30;padding:40px 30px;text-align:center;border-bottom:3px solid #D4AF37">
-      <img src="https://firebasestorage.googleapis.com/v0/b/advance-medical-68626.firebasestorage.app/o/pre-configuraciones%2Fbranding-temp%2Ficono-1759185951906-kez3tj-logo.png?alt=media&token=259c0cad-5cac-4ae5-9f3d-cc6438eb8ec2" alt="Expo Empresarios de la Baja" style="max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto" />
+      <img src="${EMAIL_LOGO_URL}" alt="Expo Empresarios de la Baja" style="max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto" />
       <h1 style="color:#fff !important;font-size:28px;font-weight:700;margin:0;line-height:1.3">✅ Cita Confirmada</h1>
       <div class="subtitle" style="color:#D4AF37 !important;font-size:16px;margin-top:10px;font-weight:500">Tu reunión ha sido aceptada</div>
     </div>
@@ -2194,7 +2185,7 @@ async function enviarCorreoCitaRechazada(
   quiereReagendar: boolean
 ): Promise<void> {
   try {
-    const emailAPIUrl = 'https://us-central1-advance-medical-68626.cloudfunctions.net/emailAPI/sendEmail';
+    const emailAPIUrl = EMAIL_API_URL;
     const fechaFormateada = new Date(fecha + 'T00:00:00').toLocaleDateString('es-ES', {
       weekday: 'long',
       year: 'numeric',
@@ -2232,7 +2223,7 @@ async function enviarCorreoCitaRechazada(
 <body>
   <div class="container">
     <div class="header" style="background-color:#2a2a30;padding:40px 30px;text-align:center;border-bottom:3px solid #D4AF37">
-      <img src="https://firebasestorage.googleapis.com/v0/b/advance-medical-68626.firebasestorage.app/o/pre-configuraciones%2Fbranding-temp%2Ficono-1759185951906-kez3tj-logo.png?alt=media&token=259c0cad-5cac-4ae5-9f3d-cc6438eb8ec2" alt="Expo Empresarios de la Baja" style="max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto" />
+      <img src="${EMAIL_LOGO_URL}" alt="Expo Empresarios de la Baja" style="max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto" />
       <h1 style="color:#fff !important;font-size:28px;font-weight:700;margin:0;line-height:1.3">❌ Cita Rechazada</h1>
       <div class="subtitle" style="color:#EF4444 !important;font-size:16px;margin-top:10px;font-weight:500">No se podrá realizar la reunión</div>
     </div>
@@ -2327,7 +2318,7 @@ async function enviarCorreoCitaReagendada(
   razon: string
 ): Promise<void> {
   try {
-    const emailAPIUrl = 'https://us-central1-advance-medical-68626.cloudfunctions.net/emailAPI/sendEmail';
+    const emailAPIUrl = EMAIL_API_URL;
     const fechaAnteriorFormateada = new Date(fechaAnterior + 'T00:00:00').toLocaleDateString('es-ES');
     const fechaNuevaFormateada = new Date(fechaNueva + 'T00:00:00').toLocaleDateString('es-ES', {
       weekday: 'long',
@@ -2366,7 +2357,7 @@ async function enviarCorreoCitaReagendada(
 <body>
   <div class="container">
     <div class="header" style="background-color:#2a2a30;padding:40px 30px;text-align:center;border-bottom:3px solid #D4AF37">
-      <img src="https://firebasestorage.googleapis.com/v0/b/advance-medical-68626.firebasestorage.app/o/pre-configuraciones%2Fbranding-temp%2Ficono-1759185951906-kez3tj-logo.png?alt=media&token=259c0cad-5cac-4ae5-9f3d-cc6438eb8ec2" alt="Expo Empresarios de la Baja" style="max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto" />
+      <img src="${EMAIL_LOGO_URL}" alt="Expo Empresarios de la Baja" style="max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto" />
       <h1 style="color:#fff !important;font-size:28px;font-weight:700;margin:0;line-height:1.3">↻ Cita Reagendada</h1>
       <div class="subtitle" style="color:#3B82F6 !important;font-size:16px;margin-top:10px;font-weight:500">Nueva fecha propuesta</div>
     </div>
@@ -2492,8 +2483,7 @@ export async function enviarCorreoSolicitudEnRevisionExpositor(
   try {
     console.log('📧 Enviando correo de solicitud en revisión a:', email);
 
-    const emailAPIUrl = import.meta.env.VITE_EMAIL_API_URL ||
-      'https://us-central1-advance-medical-68626.cloudfunctions.net/emailAPI/sendEmail';
+    const emailAPIUrl = EMAIL_API_URL;
 
     const htmlContent = `
 <!DOCTYPE html>
@@ -2530,7 +2520,7 @@ export async function enviarCorreoSolicitudEnRevisionExpositor(
 <body>
   <div class="container">
     <div class="header" style="background-color:#2a2a30;padding:40px 30px;text-align:center;border-bottom:3px solid #D4AF37">
-      <img src="https://firebasestorage.googleapis.com/v0/b/advance-medical-68626.firebasestorage.app/o/pre-configuraciones%2Fbranding-temp%2Ficono-1759185951906-kez3tj-logo.png?alt=media&token=259c0cad-5cac-4ae5-9f3d-cc6438eb8ec2" alt="Expo Empresarios de la Baja" style="max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto" />
+      <img src="${EMAIL_LOGO_URL}" alt="Expo Empresarios de la Baja" style="max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto" />
       <h1 style="color:#fff !important;font-size:28px;font-weight:700;margin:0;line-height:1.3">¡Solicitud Recibida! 📋</h1>
       <div class="subtitle" style="color:#D4AF37 !important;font-size:16px;margin-top:10px;font-weight:500">Estamos revisando tu información</div>
     </div>
@@ -2607,8 +2597,7 @@ export async function enviarCorreoExpositorAceptado(
   try {
     console.log('📧 Enviando correo de expositor aceptado a:', email);
 
-    const emailAPIUrl = import.meta.env.VITE_EMAIL_API_URL ||
-      'https://us-central1-advance-medical-68626.cloudfunctions.net/emailAPI/sendEmail';
+    const emailAPIUrl = EMAIL_API_URL;
 
     const registroUrl = `${landingUrl}/registro-expositor?expositor=${expositorId}`;
 
@@ -2649,7 +2638,7 @@ export async function enviarCorreoExpositorAceptado(
 <body>
   <div class="container">
     <div class="header" style="background-color:#2a2a30;padding:40px 30px;text-align:center;border-bottom:3px solid #D4AF37">
-      <img src="https://firebasestorage.googleapis.com/v0/b/advance-medical-68626.firebasestorage.app/o/pre-configuraciones%2Fbranding-temp%2Ficono-1759185951906-kez3tj-logo.png?alt=media&token=259c0cad-5cac-4ae5-9f3d-cc6438eb8ec2" alt="Expo Empresarios de la Baja" style="max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto" />
+      <img src="${EMAIL_LOGO_URL}" alt="Expo Empresarios de la Baja" style="max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto" />
       <h1 style="color:#fff !important;font-size:28px;font-weight:700;margin:0;line-height:1.3">¡Felicidades! 🎉</h1>
       <div class="subtitle" style="color:#D4AF37 !important;font-size:16px;margin-top:10px;font-weight:500">Tu solicitud ha sido aceptada</div>
     </div>
@@ -2831,7 +2820,7 @@ async function enviarCorreoInvitacionColaborador(
   registroUrl: string
 ): Promise<void> {
   try {
-    const emailAPIUrl = 'https://us-central1-advance-medical-68626.cloudfunctions.net/emailAPI/sendEmail';
+    const emailAPIUrl = EMAIL_API_URL;
 
     const htmlContent = `
 <!DOCTYPE html>
@@ -2870,7 +2859,7 @@ async function enviarCorreoInvitacionColaborador(
 <body>
   <div class="container">
     <div class="header" style="background-color:#2a2a30;padding:40px 30px;text-align:center;border-bottom:3px solid #D4AF37">
-      <img src="https://firebasestorage.googleapis.com/v0/b/advance-medical-68626.firebasestorage.app/o/pre-configuraciones%2Fbranding-temp%2Ficono-1759185951906-kez3tj-logo.png?alt=media&token=259c0cad-5cac-4ae5-9f3d-cc6438eb8ec2" alt="Expo Empresarios de la Baja" style="max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto" />
+      <img src="${EMAIL_LOGO_URL}" alt="Expo Empresarios de la Baja" style="max-width:180px;height:auto;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto" />
       <h1 style="color:#fff !important;font-size:28px;font-weight:700;margin:0;line-height:1.3">¡Estás Invitado! 🎉</h1>
       <div class="subtitle" style="color:#D4AF37 !important;font-size:16px;margin-top:10px;font-weight:500">12ª Expo Empresarios de la Baja</div>
     </div>

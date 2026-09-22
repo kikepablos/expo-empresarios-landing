@@ -1,9 +1,9 @@
 {
   "projects": {
-    "default": "advance-medical-68626"
+    "default": "scaleflow-aee7f"
   },
   "targets": {
-    "advance-medical-68626": {
+    "scaleflow-aee7f": {
       "hosting": {
         "expo-empresarios": [
           "expo-empresarios-de-la-baja"
