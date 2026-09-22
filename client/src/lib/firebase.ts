@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDoc, getDocs, updateDoc, collection, addDoc, serverTimestamp, query, where } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, getDocs, updateDoc, setDoc, collection, addDoc, serverTimestamp, query, where } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import {
   getAuth,
@@ -717,14 +717,34 @@ export async function createExpositorAccount(email: string, password: string) {
   } catch (error: any) {
     console.error('❌ Error al crear cuenta:', error);
 
-    // Mensajes de error personalizados
-    let errorMessage = 'Error al crear la cuenta';
+    // La cuenta pudo crearse antes desde la Suite ("Crear cuenta"). Si la
+    // contraseña coincide, se usa esa cuenta en lugar de bloquear el registro.
     if (error.code === 'auth/email-already-in-use') {
-      errorMessage = 'Ya existe una cuenta con este correo electrónico';
-    } else if (error.code === 'auth/invalid-email') {
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        return {
+          success: true,
+          uid: userCredential.user.uid,
+          email: userCredential.user.email,
+        };
+      } catch {
+        throw new Error(
+          'Ya existe una cuenta con este correo. Usa la contraseña que te enviamos por correo o recupérala en "¿Olvidaste tu contraseña?".'
+        );
+      }
+    }
+
+    // Mensajes de error personalizados. Los códigos no mapeados se incluyen
+    // en el mensaje para que la causa real no quede oculta.
+    let errorMessage = `Error al crear la cuenta (${error.code || error.message || 'desconocido'})`;
+    if (error.code === 'auth/invalid-email') {
       errorMessage = 'El correo electrónico no es válido';
     } else if (error.code === 'auth/weak-password') {
       errorMessage = 'La contraseña debe tener al menos 6 caracteres';
+    } else if (error.code === 'auth/operation-not-allowed') {
+      errorMessage = 'El registro con correo y contraseña no está habilitado en Firebase. Contacta al administrador.';
+    } else if (error.code === 'auth/network-request-failed') {
+      errorMessage = 'Error de conexión. Verifica tu conexión a internet e intenta de nuevo.';
     }
 
     throw new Error(errorMessage);
@@ -2442,12 +2462,30 @@ async function enviarCorreoCitaReagendada(
 /**
  * Crea una solicitud de expositor sin cuenta (estado pendiente)
  */
-export async function crearSolicitudExpositor(empresaId: string, data: any) {
+export async function crearSolicitudExpositor(
+  empresaId: string,
+  data: any,
+  archivos: { logo?: File | null; galeria?: File[] } = {}
+) {
   try {
     console.log('📝 Creando solicitud de expositor...');
 
+    // Se genera el ID antes de crear el documento para subir las imágenes a
+    // su carpeta y guardar las URLs en el mismo `create`: quien solicita no
+    // tiene sesión, y las reglas solo le permiten crear, no actualizar después.
+    const expositorRef = doc(collection(db, `empresas/${empresaId}/expositores`));
+
+    const logoUrl = archivos.logo
+      ? await uploadExpositorLogo(empresaId, expositorRef.id, archivos.logo)
+      : null;
+    const imagenesGaleria = archivos.galeria?.length
+      ? await uploadExpositorGallery(empresaId, expositorRef.id, archivos.galeria)
+      : [];
+
     const solicitudData = {
       ...data,
+      logoUrl,
+      imagenesGaleria,
       status: 'Pendiente',
       fechaSolicitud: new Date().toISOString(),
       fechaActualizacion: new Date().toISOString(),
@@ -2461,11 +2499,10 @@ export async function crearSolicitudExpositor(empresaId: string, data: any) {
       }]
     };
 
-    const expositoresRef = collection(db, `empresas/${empresaId}/expositores`);
-    const docRef = await addDoc(expositoresRef, solicitudData);
+    await setDoc(expositorRef, solicitudData);
 
-    console.log('✅ Solicitud creada con ID:', docRef.id);
-    return docRef.id;
+    console.log('✅ Solicitud creada con ID:', expositorRef.id);
+    return expositorRef.id;
   } catch (error) {
     console.error('❌ Error al crear solicitud:', error);
     throw error;

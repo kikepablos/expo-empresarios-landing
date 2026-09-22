@@ -318,7 +318,8 @@ export default function RegisterExpositorPage() {
 
         // 6. Enviar correo de bienvenida
         console.log('📧 Enviando correo de bienvenida...');
-        const dashboardUrl = APP_CONFIG.urls.landing;
+        // Con protocolo: sin https:// el enlace del correo no es clickeable en varios clientes
+        const dashboardUrl = `https://${APP_CONFIG.urls.landing}`;
         await sendWelcomeEmail(
           formData.email,
           formData.nombre,
@@ -345,7 +346,10 @@ export default function RegisterExpositorPage() {
 
         // Crear solicitud en estado "Pendiente"
         console.log('💾 Creando solicitud de expositor...');
-        await crearSolicitudExpositor(empresaId, expositorDataClean);
+        await crearSolicitudExpositor(empresaId, expositorDataClean, {
+          logo: logoFile,
+          galeria: galeriaFiles,
+        });
 
         // Enviar correo de solicitud en revisión
         console.log('📧 Enviando correo de solicitud en revisión...');
